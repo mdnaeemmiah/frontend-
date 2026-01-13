@@ -308,7 +308,7 @@ export default function OnboardingPage() {
               </div>
 
               {formData.location.latitude !== 0 && (
-                <div className="bg-[#ebe2cd]/50 border-2 border-[#2952a1]/30 rounded-2xl p-6">
+                <div className="bg-[#ebe2cd]/10 border-2 border-[#2952a1]/30 rounded-2xl p-6">
                   <h3 className="font-bold text-gray-900 mb-4">Search Radius</h3>
                   <div className="text-center mb-4">
                     <span className="text-4xl font-bold text-[#2952a1]">{formData.location.radius} km</span>

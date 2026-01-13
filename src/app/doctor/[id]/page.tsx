@@ -112,7 +112,7 @@ export default function DoctorProfilePage() {
     
     // Otherwise check weekly availability
     const selectedDate = new Date(date);
-    const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'lowercase' });
+    const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
     
     const dayAvailability = doctor?.availability?.find(
       (avail: any) => avail.day.toLowerCase() === dayOfWeek && avail.isAvailable

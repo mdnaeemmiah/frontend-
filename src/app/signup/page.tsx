@@ -15,7 +15,7 @@ const signupSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string(),
   role: z.enum(['user', 'doctor'], {
-    required_error: 'Please select your role',
+    message: 'Please select your role',
   }),
   agreeToTerms: z.boolean().refine((val) => val === true, {
     message: 'You must agree to the terms and conditions',

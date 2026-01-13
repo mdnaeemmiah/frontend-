@@ -20,7 +20,7 @@ export const registerUser = async (userData: FieldValues) => {
       const cookieStore = cookies();
       const secure = process.env.NODE_ENV === "production";
 
-      cookieStore.set({
+      (await cookieStore).set({
         name: "accessToken",
         value: result.data.accessToken,
         httpOnly: true,
@@ -29,7 +29,7 @@ export const registerUser = async (userData: FieldValues) => {
       });
 
       if (result?.data?.refreshToken) {
-        cookieStore.set({
+       (await cookieStore).set({
           name: "refreshToken",
           value: result.data.refreshToken,
           httpOnly: true,
