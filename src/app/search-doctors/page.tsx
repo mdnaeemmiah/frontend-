@@ -1,18 +1,19 @@
-'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const specializations = [
-  'All Specializations',
-  'Cardiology',
-  'Dermatology',
-  'Neurology',
-  'Pediatrics',
-  'Orthopedics',
-  'General Medicine',
-  'Psychiatry',
-  'Oncology',
+  "All Specializations",
+  "Cardiology",
+  "Dermatology",
+  "Neurology",
+  "Pediatrics",
+  "Orthopedics",
+  "General Medicine",
+  "Psychiatry",
+  "Oncology",
 ];
 
 export default function SearchDoctors() {
@@ -20,40 +21,42 @@ export default function SearchDoctors() {
   const [loading, setLoading] = useState(false);
   const [doctors, setDoctors] = useState<any[]>([]);
   const [searchParams, setSearchParams] = useState({
-    location: '',
-    latitude: '',
-    longitude: '',
-    radius: '25',
-    specialization: '',
-    careMode: 'both' as 'in-person' | 'virtual' | 'both',
+    location: "",
+    latitude: "",
+    longitude: "",
+    radius: "25",
+    specialization: "",
+    careMode: "both" as "in-person" | "virtual" | "both",
   });
-  const [locationError, setLocationError] = useState('');
+  const [locationError, setLocationError] = useState("");
 
   const getCurrentLocation = () => {
-    setLocationError('');
-    if ('geolocation' in navigator) {
+    setLocationError("");
+    if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setSearchParams({
             ...searchParams,
             latitude: position.coords.latitude.toString(),
             longitude: position.coords.longitude.toString(),
-            location: 'Current Location',
+            location: "Current Location",
           });
         },
         (error) => {
-          setLocationError('Unable to get your location. Please enter manually.');
-          console.error('Geolocation error:', error);
+          setLocationError(
+            "Unable to get your location. Please enter manually."
+          );
+          console.error("Geolocation error:", error);
         }
       );
     } else {
-      setLocationError('Geolocation is not supported by your browser');
+      setLocationError("Geolocation is not supported by your browser");
     }
   };
 
   const searchDoctors = async () => {
     if (!searchParams.latitude || !searchParams.longitude) {
-      alert('Please provide location coordinates');
+      alert("Please provide location coordinates");
       return;
     }
 
@@ -65,27 +68,32 @@ export default function SearchDoctors() {
         radius: searchParams.radius,
       });
 
-      if (searchParams.specialization && searchParams.specialization !== 'All Specializations') {
-        params.append('specialization', searchParams.specialization);
+      if (
+        searchParams.specialization &&
+        searchParams.specialization !== "All Specializations"
+      ) {
+        params.append("specialization", searchParams.specialization);
       }
 
       if (searchParams.careMode) {
-        params.append('careMode', searchParams.careMode);
+        params.append("careMode", searchParams.careMode);
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || 'http://localhost:5000'}/api/doctor/search-by-location?${params}`
+        `${
+          process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"
+        }/api/doctor/search-by-location?${params}`
       );
 
       const result = await response.json();
       if (result.success) {
         setDoctors(result.data);
       } else {
-        alert(result.message || 'Failed to search doctors');
+        alert(result.message || "Failed to search doctors");
       }
     } catch (error) {
-      console.error('Error searching doctors:', error);
-      alert('Failed to search doctors');
+      console.error("Error searching doctors:", error);
+      alert("Failed to search doctors");
     } finally {
       setLoading(false);
     }
@@ -106,7 +114,7 @@ export default function SearchDoctors() {
               </span>
             </div>
             <button
-              onClick={() => router.push('/')}
+              onClick={() => router.push("/")}
               className="text-gray-600 hover:text-gray-900 font-medium"
             >
               Back to Home
@@ -118,8 +126,13 @@ export default function SearchDoctors() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Find Doctors Near You</h1>
-          <p className="text-gray-600">Search for healthcare providers based on your location and preferences</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Find Doctors Near You
+          </h1>
+          <p className="text-gray-600">
+            Search for healthcare providers based on your location and
+            preferences
+          </p>
         </div>
 
         {/* Search Form */}
@@ -127,12 +140,19 @@ export default function SearchDoctors() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Location */}
             <div className="lg:col-span-2">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Location</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Location
+              </label>
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={searchParams.location}
-                  onChange={(e) => setSearchParams({ ...searchParams, location: e.target.value })}
+                  onChange={(e) =>
+                    setSearchParams({
+                      ...searchParams,
+                      location: e.target.value,
+                    })
+                  }
                   placeholder="Enter city or use current location"
                   className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -143,20 +163,27 @@ export default function SearchDoctors() {
                   📍 Use Current
                 </button>
               </div>
-              {locationError && <p className="mt-2 text-sm text-red-600">{locationError}</p>}
+              {locationError && (
+                <p className="mt-2 text-sm text-red-600">{locationError}</p>
+              )}
               {searchParams.latitude && (
                 <p className="mt-2 text-sm text-green-600">
-                  ✓ Location set: {parseFloat(searchParams.latitude).toFixed(4)}, {parseFloat(searchParams.longitude).toFixed(4)}
+                  ✓ Location set: {parseFloat(searchParams.latitude).toFixed(4)}
+                  , {parseFloat(searchParams.longitude).toFixed(4)}
                 </p>
               )}
             </div>
 
             {/* Radius */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Radius (km)</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Radius (km)
+              </label>
               <select
                 value={searchParams.radius}
-                onChange={(e) => setSearchParams({ ...searchParams, radius: e.target.value })}
+                onChange={(e) =>
+                  setSearchParams({ ...searchParams, radius: e.target.value })
+                }
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="5">5 km</option>
@@ -169,24 +196,40 @@ export default function SearchDoctors() {
 
             {/* Specialization */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Specialization</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Specialization
+              </label>
               <select
                 value={searchParams.specialization}
-                onChange={(e) => setSearchParams({ ...searchParams, specialization: e.target.value })}
+                onChange={(e) =>
+                  setSearchParams({
+                    ...searchParams,
+                    specialization: e.target.value,
+                  })
+                }
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                {specializations.map(spec => (
-                  <option key={spec} value={spec}>{spec}</option>
+                {specializations.map((spec) => (
+                  <option key={spec} value={spec}>
+                    {spec}
+                  </option>
                 ))}
               </select>
             </div>
 
             {/* Care Mode */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Care Mode</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Care Mode
+              </label>
               <select
                 value={searchParams.careMode}
-                onChange={(e) => setSearchParams({ ...searchParams, careMode: e.target.value as any })}
+                onChange={(e) =>
+                  setSearchParams({
+                    ...searchParams,
+                    careMode: e.target.value as any,
+                  })
+                }
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="both">Both In-Person & Virtual</option>
@@ -197,24 +240,35 @@ export default function SearchDoctors() {
 
             {/* Manual Coordinates (Advanced) */}
             <div className="lg:col-span-1">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Latitude (Optional)</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Latitude (Optional)
+              </label>
               <input
                 type="number"
                 step="0.000001"
                 value={searchParams.latitude}
-                onChange={(e) => setSearchParams({ ...searchParams, latitude: e.target.value })}
+                onChange={(e) =>
+                  setSearchParams({ ...searchParams, latitude: e.target.value })
+                }
                 placeholder="40.7128"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
             <div className="lg:col-span-1">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Longitude (Optional)</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Longitude (Optional)
+              </label>
               <input
                 type="number"
                 step="0.000001"
                 value={searchParams.longitude}
-                onChange={(e) => setSearchParams({ ...searchParams, longitude: e.target.value })}
+                onChange={(e) =>
+                  setSearchParams({
+                    ...searchParams,
+                    longitude: e.target.value,
+                  })
+                }
                 placeholder="-74.0060"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
@@ -224,10 +278,12 @@ export default function SearchDoctors() {
           {/* Search Button */}
           <button
             onClick={searchDoctors}
-            disabled={loading || !searchParams.latitude || !searchParams.longitude}
+            disabled={
+              loading || !searchParams.latitude || !searchParams.longitude
+            }
             className="mt-6 w-full bg-linear-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Searching...' : '🔍 Search Doctors'}
+            {loading ? "Searching..." : "🔍 Search Doctors"}
           </button>
         </div>
 
@@ -235,19 +291,27 @@ export default function SearchDoctors() {
         {doctors.length > 0 && (
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Found {doctors.length} doctor{doctors.length !== 1 ? 's' : ''} near you
+              Found {doctors.length} doctor{doctors.length !== 1 ? "s" : ""}{" "}
+              near you
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {doctors.map((doctor) => (
-                <div key={doctor._id} className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div
+                  key={doctor._id}
+                  className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+                >
                   {/* Doctor Image */}
                   <div className="flex items-start mb-4">
                     <div className="w-16 h-16 bg-linear-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mr-4 shrink-0">
                       {doctor.name.charAt(0)}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-900">{doctor.name}</h3>
-                      <p className="text-sm text-gray-600">{doctor.specialization}</p>
+                      <h3 className="text-xl font-bold text-gray-900">
+                        {doctor.name}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {doctor.specialization}
+                      </p>
                       {doctor.distance && (
                         <p className="text-sm text-blue-600 font-medium mt-1">
                           📍 {doctor.distance} km away
@@ -260,17 +324,20 @@ export default function SearchDoctors() {
                   <div className="space-y-2 mb-4">
                     {doctor.experience && (
                       <p className="text-sm text-gray-700">
-                        <span className="font-semibold">Experience:</span> {doctor.experience} years
+                        <span className="font-semibold">Experience:</span>{" "}
+                        {doctor.experience} years
                       </p>
                     )}
                     {doctor.consultationFee && (
                       <p className="text-sm text-gray-700">
-                        <span className="font-semibold">Fee:</span> ${doctor.consultationFee}
+                        <span className="font-semibold">Fee:</span> $
+                        {doctor.consultationFee}
                       </p>
                     )}
                     {doctor.rating && (
                       <p className="text-sm text-gray-700">
-                        <span className="font-semibold">Rating:</span> ⭐ {doctor.rating}/5
+                        <span className="font-semibold">Rating:</span> ⭐{" "}
+                        {doctor.rating}/5
                       </p>
                     )}
                   </div>
@@ -297,10 +364,15 @@ export default function SearchDoctors() {
                   {/* Chamber Location */}
                   {doctor.chamberLocation?.address && (
                     <div className="mb-4 p-3 bg-gray-50 rounded-xl">
-                      <p className="text-xs font-semibold text-gray-700 mb-1">Chamber Location:</p>
-                      <p className="text-xs text-gray-600">{doctor.chamberLocation.address}</p>
+                      <p className="text-xs font-semibold text-gray-700 mb-1">
+                        Chamber Location:
+                      </p>
                       <p className="text-xs text-gray-600">
-                        {doctor.chamberLocation.city}, {doctor.chamberLocation.zipCode}
+                        {doctor.chamberLocation.address}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {doctor.chamberLocation.city},{" "}
+                        {doctor.chamberLocation.zipCode}
                       </p>
                       {doctor.chamberLocation.googleMapsUrl && (
                         <a
@@ -334,7 +406,9 @@ export default function SearchDoctors() {
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <span className="text-4xl">🔍</span>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">No doctors found</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              No doctors found
+            </h3>
             <p className="text-gray-600 mb-6">
               Try increasing the search radius or adjusting your filters
             </p>

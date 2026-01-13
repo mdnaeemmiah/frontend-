@@ -1,7 +1,8 @@
-'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 interface TimeSlot {
   startTime: string;
@@ -15,40 +16,48 @@ interface SpecificDate {
 }
 
 interface DayAvailability {
-  day: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+  day:
+    | "monday"
+    | "tuesday"
+    | "wednesday"
+    | "thursday"
+    | "friday"
+    | "saturday"
+    | "sunday";
   timeSlots: TimeSlot[];
   isAvailable: boolean;
   specificDates?: SpecificDate[];
 }
 
 const daysOfWeek = [
-  { value: 'monday', label: 'Monday' },
-  { value: 'tuesday', label: 'Tuesday' },
-  { value: 'wednesday', label: 'Wednesday' },
-  { value: 'thursday', label: 'Thursday' },
-  { value: 'friday', label: 'Friday' },
-  { value: 'saturday', label: 'Saturday' },
-  { value: 'sunday', label: 'Sunday' },
+  { value: "monday", label: "Monday" },
+  { value: "tuesday", label: "Tuesday" },
+  { value: "wednesday", label: "Wednesday" },
+  { value: "thursday", label: "Thursday" },
+  { value: "friday", label: "Friday" },
+  { value: "saturday", label: "Saturday" },
+  { value: "sunday", label: "Sunday" },
 ];
 
 export default function DoctorAvailability() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'weekly' | 'specific'>('weekly');
+  const [activeTab, setActiveTab] = useState<"weekly" | "specific">("weekly");
   const [availability, setAvailability] = useState<DayAvailability[]>(
-    daysOfWeek.map(day => ({
+    daysOfWeek.map((day) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       day: day.value as any,
-      timeSlots: [{ startTime: '09:00', endTime: '17:00' }],
+      timeSlots: [{ startTime: "09:00", endTime: "17:00" }],
       isAvailable: false,
       specificDates: [],
     }))
   );
   const [specificDates, setSpecificDates] = useState<SpecificDate[]>([]);
   const [newSpecificDate, setNewSpecificDate] = useState({
-    date: '',
-    startTime: '09:00',
-    endTime: '17:00',
+    date: "",
+    startTime: "09:00",
+    endTime: "17:00",
   });
 
   useEffect(() => {
@@ -57,23 +66,31 @@ export default function DoctorAvailability() {
 
   const fetchAvailability = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_API || 'http://localhost:5000'}/api/user/me`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
+      const token = localStorage.getItem("accessToken");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/user/me`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       const result = await response.json();
-      if (result.success && result.data.availability && result.data.availability.length > 0) {
+      if (
+        result.success &&
+        result.data.availability &&
+        result.data.availability.length > 0
+      ) {
         const availData = result.data.availability.map((avail: any) => ({
           ...avail,
-          specificDates: avail.specificDates?.map((sd: any) => ({
-            date: new Date(sd.date).toISOString().split('T')[0],
-            timeSlots: sd.timeSlots,
-            isAvailable: sd.isAvailable,
-          })) || [],
+          specificDates:
+            avail.specificDates?.map((sd: any) => ({
+              date: new Date(sd.date).toISOString().split("T")[0],
+              timeSlots: sd.timeSlots,
+              isAvailable: sd.isAvailable,
+            })) || [],
         }));
         setAvailability(availData);
-        
+
         const allSpecificDates: SpecificDate[] = [];
         availData.forEach((day: any) => {
           if (day.specificDates) {
@@ -83,7 +100,7 @@ export default function DoctorAvailability() {
         setSpecificDates(allSpecificDates);
       }
     } catch (error) {
-      console.error('Error fetching availability:', error);
+      console.error("Error fetching availability:", error);
     } finally {
       setLoading(false);
     }
@@ -91,11 +108,17 @@ export default function DoctorAvailability() {
 
   const handleDayToggle = (dayIndex: number) => {
     const newAvailability = [...availability];
-    newAvailability[dayIndex].isAvailable = !newAvailability[dayIndex].isAvailable;
+    newAvailability[dayIndex].isAvailable =
+      !newAvailability[dayIndex].isAvailable;
     setAvailability(newAvailability);
   };
 
-  const handleTimeSlotChange = (dayIndex: number, slotIndex: number, field: 'startTime' | 'endTime', value: string) => {
+  const handleTimeSlotChange = (
+    dayIndex: number,
+    slotIndex: number,
+    field: "startTime" | "endTime",
+    value: string
+  ) => {
     const newAvailability = [...availability];
     newAvailability[dayIndex].timeSlots[slotIndex][field] = value;
     setAvailability(newAvailability);
@@ -103,7 +126,10 @@ export default function DoctorAvailability() {
 
   const addTimeSlot = (dayIndex: number) => {
     const newAvailability = [...availability];
-    newAvailability[dayIndex].timeSlots.push({ startTime: '09:00', endTime: '17:00' });
+    newAvailability[dayIndex].timeSlots.push({
+      startTime: "09:00",
+      endTime: "17:00",
+    });
     setAvailability(newAvailability);
   };
 
@@ -117,25 +143,35 @@ export default function DoctorAvailability() {
 
   const addSpecificDate = () => {
     if (!newSpecificDate.date) {
-      alert('Please select a date');
+      alert("Please select a date");
       return;
     }
 
     const newDate: SpecificDate = {
       date: newSpecificDate.date,
-      timeSlots: [{ startTime: newSpecificDate.startTime, endTime: newSpecificDate.endTime }],
+      timeSlots: [
+        {
+          startTime: newSpecificDate.startTime,
+          endTime: newSpecificDate.endTime,
+        },
+      ],
       isAvailable: true,
     };
 
     setSpecificDates([...specificDates, newDate]);
-    setNewSpecificDate({ date: '', startTime: '09:00', endTime: '17:00' });
+    setNewSpecificDate({ date: "", startTime: "09:00", endTime: "17:00" });
   };
 
   const removeSpecificDate = (index: number) => {
     setSpecificDates(specificDates.filter((_, i) => i !== index));
   };
 
-  const handleSpecificDateTimeChange = (index: number, slotIndex: number, field: 'startTime' | 'endTime', value: string) => {
+  const handleSpecificDateTimeChange = (
+    index: number,
+    slotIndex: number,
+    field: "startTime" | "endTime",
+    value: string
+  ) => {
     const newSpecificDates = [...specificDates];
     newSpecificDates[index].timeSlots[slotIndex][field] = value;
     setSpecificDates(newSpecificDates);
@@ -143,7 +179,10 @@ export default function DoctorAvailability() {
 
   const addSpecificDateTimeSlot = (index: number) => {
     const newSpecificDates = [...specificDates];
-    newSpecificDates[index].timeSlots.push({ startTime: '09:00', endTime: '17:00' });
+    newSpecificDates[index].timeSlots.push({
+      startTime: "09:00",
+      endTime: "17:00",
+    });
     setSpecificDates(newSpecificDates);
   };
 
@@ -160,31 +199,34 @@ export default function DoctorAvailability() {
     setSaving(true);
 
     try {
-      const updatedAvailability = availability.map(day => ({
+      const updatedAvailability = availability.map((day) => ({
         ...day,
         specificDates: specificDates,
       }));
 
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_API || 'http://localhost:5000'}/api/doctor/my-availability`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ availability: updatedAvailability }),
-      });
+      const token = localStorage.getItem("accessToken");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/doctor/my-availability`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ availability: updatedAvailability }),
+        }
+      );
 
       const result = await response.json();
       if (result.success) {
-        alert('Availability updated successfully!');
-        router.push('/doctor/dashboard');
+        alert("Availability updated successfully!");
+        router.push("/doctor/dashboard");
       } else {
-        alert(result.message || 'Failed to update availability');
+        alert(result.message || "Failed to update availability");
       }
     } catch (error) {
-      console.error('Error updating availability:', error);
-      alert('Failed to update availability');
+      console.error("Error updating availability:", error);
+      alert("Failed to update availability");
     } finally {
       setSaving(false);
     }
@@ -203,43 +245,53 @@ export default function DoctorAvailability() {
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <button
-            onClick={() => router.push('/doctor/dashboard')}
+            onClick={() => router.push("/doctor/dashboard")}
             className="text-blue-600 hover:text-blue-700 font-medium flex items-center mb-4"
           >
             ← Back to Dashboard
           </button>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Set Availability</h1>
-          <p className="text-gray-600">Manage your weekly schedule and specific dates for appointments</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Set Availability
+          </h1>
+          <p className="text-gray-600">
+            Manage your weekly schedule and specific dates for appointments
+          </p>
         </div>
 
         <div className="flex gap-4 mb-6">
           <button
-            onClick={() => setActiveTab('weekly')}
+            onClick={() => setActiveTab("weekly")}
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-              activeTab === 'weekly'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-blue-300'
+              activeTab === "weekly"
+                ? "bg-blue-600 text-white"
+                : "bg-white text-gray-700 border-2 border-gray-200 hover:border-blue-300"
             }`}
           >
             📅 Weekly Schedule
           </button>
           <button
-            onClick={() => setActiveTab('specific')}
+            onClick={() => setActiveTab("specific")}
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-              activeTab === 'specific'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-blue-300'
+              activeTab === "specific"
+                ? "bg-blue-600 text-white"
+                : "bg-white text-gray-700 border-2 border-gray-200 hover:border-blue-300"
             }`}
           >
             📍 Specific Dates ({specificDates.length})
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-xl p-8 space-y-6">
-          {activeTab === 'weekly' && (
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white rounded-3xl shadow-xl p-8 space-y-6"
+        >
+          {activeTab === "weekly" && (
             <div className="space-y-6">
               {availability.map((dayAvail, dayIndex) => (
-                <div key={dayAvail.day} className="border-2 border-gray-200 rounded-2xl p-6">
+                <div
+                  key={dayAvail.day}
+                  className="border-2 border-gray-200 rounded-2xl p-6"
+                >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-4">
                       <label className="relative inline-flex items-center cursor-pointer">
@@ -269,23 +321,44 @@ export default function DoctorAvailability() {
                   {dayAvail.isAvailable && (
                     <div className="space-y-3">
                       {dayAvail.timeSlots.map((slot, slotIndex) => (
-                        <div key={slotIndex} className="flex items-center gap-4">
+                        <div
+                          key={slotIndex}
+                          className="flex items-center gap-4"
+                        >
                           <div className="flex-1 grid grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Start Time
+                              </label>
                               <input
                                 type="time"
                                 value={slot.startTime}
-                                onChange={(e) => handleTimeSlotChange(dayIndex, slotIndex, 'startTime', e.target.value)}
+                                onChange={(e) =>
+                                  handleTimeSlotChange(
+                                    dayIndex,
+                                    slotIndex,
+                                    "startTime",
+                                    e.target.value
+                                  )
+                                }
                                 className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               />
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                End Time
+                              </label>
                               <input
                                 type="time"
                                 value={slot.endTime}
-                                onChange={(e) => handleTimeSlotChange(dayIndex, slotIndex, 'endTime', e.target.value)}
+                                onChange={(e) =>
+                                  handleTimeSlotChange(
+                                    dayIndex,
+                                    slotIndex,
+                                    "endTime",
+                                    e.target.value
+                                  )
+                                }
                                 className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               />
                             </div>
@@ -293,12 +366,24 @@ export default function DoctorAvailability() {
                           {dayAvail.timeSlots.length > 1 && (
                             <button
                               type="button"
-                              onClick={() => removeTimeSlot(dayIndex, slotIndex)}
+                              onClick={() =>
+                                removeTimeSlot(dayIndex, slotIndex)
+                              }
                               className="mt-6 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title="Remove time slot"
                             >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
                               </svg>
                             </button>
                           )}
@@ -308,13 +393,17 @@ export default function DoctorAvailability() {
                   )}
 
                   {!dayAvail.isAvailable && (
-                    <p className="text-gray-500 text-sm">Not available on this day</p>
+                    <p className="text-gray-500 text-sm">
+                      Not available on this day
+                    </p>
                   )}
                 </div>
               ))}
 
               <div className="p-6 bg-blue-50 rounded-2xl border border-blue-200">
-                <h3 className="font-semibold text-blue-900 mb-3">Quick Actions:</h3>
+                <h3 className="font-semibold text-blue-900 mb-3">
+                  Quick Actions:
+                </h3>
                 <div className="flex flex-wrap gap-3">
                   <button
                     type="button"
@@ -322,7 +411,7 @@ export default function DoctorAvailability() {
                       const newAvailability = availability.map((day, idx) => ({
                         ...day,
                         isAvailable: idx < 5,
-                        timeSlots: [{ startTime: '09:00', endTime: '17:00' }],
+                        timeSlots: [{ startTime: "09:00", endTime: "17:00" }],
                       }));
                       setAvailability(newAvailability);
                     }}
@@ -333,10 +422,10 @@ export default function DoctorAvailability() {
                   <button
                     type="button"
                     onClick={() => {
-                      const newAvailability = availability.map(day => ({
+                      const newAvailability = availability.map((day) => ({
                         ...day,
                         isAvailable: true,
-                        timeSlots: [{ startTime: '09:00', endTime: '17:00' }],
+                        timeSlots: [{ startTime: "09:00", endTime: "17:00" }],
                       }));
                       setAvailability(newAvailability);
                     }}
@@ -347,10 +436,10 @@ export default function DoctorAvailability() {
                   <button
                     type="button"
                     onClick={() => {
-                      const newAvailability = availability.map(day => ({
+                      const newAvailability = availability.map((day) => ({
                         ...day,
                         isAvailable: false,
-                        timeSlots: [{ startTime: '09:00', endTime: '17:00' }],
+                        timeSlots: [{ startTime: "09:00", endTime: "17:00" }],
                       }));
                       setAvailability(newAvailability);
                     }}
@@ -363,36 +452,59 @@ export default function DoctorAvailability() {
             </div>
           )}
 
-          {activeTab === 'specific' && (
+          {activeTab === "specific" && (
             <div className="space-y-6">
               <div className="border-2 border-dashed border-blue-300 rounded-2xl p-6 bg-blue-50">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Add Specific Date</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">
+                  Add Specific Date
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Date
+                    </label>
                     <input
                       type="date"
                       value={newSpecificDate.date}
-                      onChange={(e) => setNewSpecificDate({ ...newSpecificDate, date: e.target.value })}
-                      min={new Date().toISOString().split('T')[0]}
+                      onChange={(e) =>
+                        setNewSpecificDate({
+                          ...newSpecificDate,
+                          date: e.target.value,
+                        })
+                      }
+                      min={new Date().toISOString().split("T")[0]}
                       className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Start Time
+                    </label>
                     <input
                       type="time"
                       value={newSpecificDate.startTime}
-                      onChange={(e) => setNewSpecificDate({ ...newSpecificDate, startTime: e.target.value })}
+                      onChange={(e) =>
+                        setNewSpecificDate({
+                          ...newSpecificDate,
+                          startTime: e.target.value,
+                        })
+                      }
                       className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">End Time</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      End Time
+                    </label>
                     <input
                       type="time"
                       value={newSpecificDate.endTime}
-                      onChange={(e) => setNewSpecificDate({ ...newSpecificDate, endTime: e.target.value })}
+                      onChange={(e) =>
+                        setNewSpecificDate({
+                          ...newSpecificDate,
+                          endTime: e.target.value,
+                        })
+                      }
                       className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
@@ -409,15 +521,22 @@ export default function DoctorAvailability() {
               {specificDates.length > 0 ? (
                 <div className="space-y-4">
                   {specificDates.map((specificDate, dateIndex) => (
-                    <div key={dateIndex} className="border-2 border-gray-200 rounded-2xl p-6">
+                    <div
+                      key={dateIndex}
+                      className="border-2 border-gray-200 rounded-2xl p-6"
+                    >
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-lg font-bold text-gray-900">
-                          📅 {new Date(specificDate.date).toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            month: 'long',
-                            day: 'numeric',
-                            year: 'numeric',
-                          })}
+                          📅{" "}
+                          {new Date(specificDate.date).toLocaleDateString(
+                            "en-US",
+                            {
+                              weekday: "long",
+                              month: "long",
+                              day: "numeric",
+                              year: "numeric",
+                            }
+                          )}
                         </h4>
                         <button
                           type="button"
@@ -425,31 +544,62 @@ export default function DoctorAvailability() {
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           title="Remove date"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
                           </svg>
                         </button>
                       </div>
 
                       <div className="space-y-3">
                         {specificDate.timeSlots.map((slot, slotIndex) => (
-                          <div key={slotIndex} className="flex items-center gap-4">
+                          <div
+                            key={slotIndex}
+                            className="flex items-center gap-4"
+                          >
                             <div className="flex-1 grid grid-cols-2 gap-4">
                               <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  Start Time
+                                </label>
                                 <input
                                   type="time"
                                   value={slot.startTime}
-                                  onChange={(e) => handleSpecificDateTimeChange(dateIndex, slotIndex, 'startTime', e.target.value)}
+                                  onChange={(e) =>
+                                    handleSpecificDateTimeChange(
+                                      dateIndex,
+                                      slotIndex,
+                                      "startTime",
+                                      e.target.value
+                                    )
+                                  }
                                   className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                               </div>
                               <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  End Time
+                                </label>
                                 <input
                                   type="time"
                                   value={slot.endTime}
-                                  onChange={(e) => handleSpecificDateTimeChange(dateIndex, slotIndex, 'endTime', e.target.value)}
+                                  onChange={(e) =>
+                                    handleSpecificDateTimeChange(
+                                      dateIndex,
+                                      slotIndex,
+                                      "endTime",
+                                      e.target.value
+                                    )
+                                  }
                                   className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                               </div>
@@ -457,12 +607,27 @@ export default function DoctorAvailability() {
                             {specificDate.timeSlots.length > 1 && (
                               <button
                                 type="button"
-                                onClick={() => removeSpecificDateTimeSlot(dateIndex, slotIndex)}
+                                onClick={() =>
+                                  removeSpecificDateTimeSlot(
+                                    dateIndex,
+                                    slotIndex
+                                  )
+                                }
                                 className="mt-6 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                 title="Remove time slot"
                               >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                <svg
+                                  className="w-5 h-5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
                                 </svg>
                               </button>
                             )}
@@ -484,8 +649,13 @@ export default function DoctorAvailability() {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <p className="text-gray-500 text-lg">No specific dates added yet</p>
-                  <p className="text-gray-400 text-sm mt-2">Add specific dates above to set availability for particular days</p>
+                  <p className="text-gray-500 text-lg">
+                    No specific dates added yet
+                  </p>
+                  <p className="text-gray-400 text-sm mt-2">
+                    Add specific dates above to set availability for particular
+                    days
+                  </p>
                 </div>
               )}
             </div>
@@ -497,11 +667,11 @@ export default function DoctorAvailability() {
               disabled={saving}
               className="flex-1 bg-linear-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50"
             >
-              {saving ? 'Saving...' : '💾 Save Availability'}
+              {saving ? "Saving..." : "💾 Save Availability"}
             </button>
             <button
               type="button"
-              onClick={() => router.push('/doctor/dashboard')}
+              onClick={() => router.push("/doctor/dashboard")}
               className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all"
             >
               Cancel

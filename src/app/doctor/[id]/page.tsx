@@ -1,3 +1,5 @@
+/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -38,7 +40,7 @@ export default function DoctorProfilePage() {
     try {
       const token = localStorage.getItem('accessToken');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || 'http://localhost:5000'}/api/doctor/${doctorId}`,
+        `${process.env.NEXT_PUBLIC_BASE_API || 'https://practice-backend-oauth-image-video.vercel.app'}/api/doctor/${doctorId}`,
         {
           headers: token ? { 'Authorization': `Bearer ${token}` } : {},
         }
@@ -61,7 +63,7 @@ export default function DoctorProfilePage() {
     try {
       const token = localStorage.getItem('accessToken');
       const userResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || 'http://localhost:5000'}/api/user/me`,
+        `${process.env.NEXT_PUBLIC_BASE_API || 'https://practice-backend-oauth-image-video.vercel.app'}/api/user/me`,
         {
           headers: { 'Authorization': `Bearer ${token}` },
         }
@@ -69,7 +71,7 @@ export default function DoctorProfilePage() {
       const userData = await userResponse.json();
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || 'http://localhost:5000'}/api/message`,
+        `${process.env.NEXT_PUBLIC_BASE_API || 'https://practice-backend-oauth-image-video.vercel.app'}/api/message`,
         {
           method: 'POST',
           headers: {
@@ -138,7 +140,7 @@ export default function DoctorProfilePage() {
     try {
       const token = localStorage.getItem('accessToken');
       const userResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || 'http://localhost:5000'}/api/user/me`,
+        `${process.env.NEXT_PUBLIC_BASE_API || 'https://practice-backend-oauth-image-video.vercel.app'}/api/user/me`,
         {
           headers: { 'Authorization': `Bearer ${token}` },
         }
@@ -146,7 +148,7 @@ export default function DoctorProfilePage() {
       const userData = await userResponse.json();
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || 'http://localhost:5000'}/api/appointment`,
+        `${process.env.NEXT_PUBLIC_BASE_API || 'https://practice-backend-oauth-image-video.vercel.app'}/api/appointment`,
         {
           method: 'POST',
           headers: {

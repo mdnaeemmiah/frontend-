@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -20,7 +21,7 @@ export default function DoctorAppointments() {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || 'http://localhost:5000'}/api/appointment/doctor-appointments`,
+        `${process.env.NEXT_PUBLIC_BASE_API || 'https://practice-backend-oauth-image-video.vercel.app'}/api/appointment/doctor-appointments`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

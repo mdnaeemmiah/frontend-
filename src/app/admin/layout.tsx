@@ -1,10 +1,11 @@
-'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import Image from 'next/image';
-import logo from '../../assets/Frame.png';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import Image from "next/image";
+import logo from "../../assets/Frame.png";
 
 export default function AdminLayout({
   children,
@@ -20,14 +21,14 @@ export default function AdminLayout({
   useEffect(() => {
     const fetchAdminProfile = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem("accessToken");
         if (!token) {
-          router.push('/login');
+          router.push("/login");
           return;
         }
 
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_API || 'http://localhost:5000'}/api/user/me`,
+          `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/user/me`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -36,22 +37,22 @@ export default function AdminLayout({
         );
 
         if (!response.ok) {
-          console.error('Failed to fetch profile:', response.status);
-          router.push('/login');
+          console.error("Failed to fetch profile:", response.status);
+          router.push("/login");
           return;
         }
 
         const result = await response.json();
 
-        if (result.success && result.data && result.data.role === 'admin') {
+        if (result.success && result.data && result.data.role === "admin") {
           setAdmin(result.data);
         } else {
-          console.error('User is not an admin or data is missing');
-          router.push('/login');
+          console.error("User is not an admin or data is missing");
+          router.push("/login");
         }
       } catch (error) {
-        console.error('Error fetching profile:', error);
-        router.push('/login');
+        console.error("Error fetching profile:", error);
+        router.push("/login");
       } finally {
         setLoading(false);
       }
@@ -61,47 +62,47 @@ export default function AdminLayout({
   }, [router]);
 
   const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    router.push('/login');
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    router.push("/login");
   };
 
   const menuItems = [
     {
-      name: 'Dashboard',
-      icon: '📊',
-      path: '/admin/dashboard',
+      name: "Dashboard",
+      icon: "📊",
+      path: "/admin/dashboard",
     },
     {
-      name: 'Appointments',
-      icon: '📅',
-      path: '/admin/appointments',
-      badge: 'pending',
+      name: "Appointments",
+      icon: "📅",
+      path: "/admin/appointments",
+      badge: "pending",
     },
     {
-      name: 'Availability Requests',
-      icon: '🕐',
-      path: '/admin/availability',
+      name: "Availability Requests",
+      icon: "🕐",
+      path: "/admin/availability",
     },
     {
-      name: 'Manage Doctors',
-      icon: '👨‍⚕️',
-      path: '/admin/doctors',
+      name: "Manage Doctors",
+      icon: "👨‍⚕️",
+      path: "/admin/doctors",
     },
     {
-      name: 'Manage Patients',
-      icon: '👥',
-      path: '/admin/patients',
+      name: "Manage Patients",
+      icon: "👥",
+      path: "/admin/patients",
     },
     {
-      name: 'Analytics',
-      icon: '📈',
-      path: '/admin/analytics',
+      name: "Analytics",
+      icon: "📈",
+      path: "/admin/analytics",
     },
     {
-      name: 'Settings',
-      icon: '⚙️',
-      path: '/admin/settings',
+      name: "Settings",
+      icon: "⚙️",
+      path: "/admin/settings",
     },
   ];
 
@@ -124,7 +125,7 @@ export default function AdminLayout({
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 h-full bg-white shadow-xl transition-all duration-300 z-40 ${
-          sidebarOpen ? 'w-64' : 'w-20'
+          sidebarOpen ? "w-64" : "w-20"
         }`}
       >
         {/* Logo */}
@@ -135,7 +136,9 @@ export default function AdminLayout({
                 <span className="text-white font-bold text-lg">N</span>
               </div>
               <div>
-                <span className="text-xl font-bold text-gray-900">NovaHealth</span>
+                <span className="text-xl font-bold text-gray-900">
+                  NovaHealth
+                </span>
                 <p className="text-xs text-gray-500">Admin Portal</p>
               </div>
             </div>
@@ -151,7 +154,7 @@ export default function AdminLayout({
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="absolute -right-3 top-24 bg-white border-2 border-gray-200 rounded-full w-6 h-6 flex items-center justify-center hover:bg-gray-50"
         >
-          <span className="text-xs">{sidebarOpen ? '←' : '→'}</span>
+          <span className="text-xs">{sidebarOpen ? "←" : "→"}</span>
         </button>
 
         {/* Navigation */}
@@ -164,8 +167,8 @@ export default function AdminLayout({
                 href={item.path}
                 className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
                   isActive
-                    ? 'bg-[#2952a1] text-white shadow-lg'
-                    : 'text-gray-700 hover:bg-[#ebe2cd]/30'
+                    ? "bg-[#2952a1] text-white shadow-lg"
+                    : "text-gray-700 hover:bg-[#ebe2cd]/30"
                 }`}
               >
                 <span className="text-xl">{item.icon}</span>
@@ -210,10 +213,10 @@ export default function AdminLayout({
           <button
             onClick={handleLogout}
             className={`w-full bg-red-100 text-red-600 py-2 rounded-lg font-medium hover:bg-red-200 transition-colors ${
-              !sidebarOpen && 'text-xs'
+              !sidebarOpen && "text-xs"
             }`}
           >
-            {sidebarOpen ? 'Logout' : '🚪'}
+            {sidebarOpen ? "Logout" : "🚪"}
           </button>
         </div>
       </aside>
@@ -221,23 +224,24 @@ export default function AdminLayout({
       {/* Main Content */}
       <main
         className={`transition-all duration-300 ${
-          sidebarOpen ? 'ml-64' : 'ml-20'
+          sidebarOpen ? "ml-64" : "ml-20"
         }`}
       >
         {/* Header */}
         <header className="bg-white shadow-sm border-b border-gray-200 h-20 flex items-center px-8">
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-gray-900">
-              {menuItems.find((item) => item.path === pathname)?.name || 'Admin Panel'}
+              {menuItems.find((item) => item.path === pathname)?.name ||
+                "Admin Panel"}
             </h1>
           </div>
           <div className="flex items-center space-x-4">
             <div className="text-sm text-gray-600">
-              {new Date().toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
+              {new Date().toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
               })}
             </div>
           </div>

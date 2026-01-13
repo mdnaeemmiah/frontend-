@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 interface Message {
   _id: string;
@@ -17,8 +17,8 @@ export default function DoctorMessagesPage() {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
 
   useEffect(() => {
@@ -27,17 +27,17 @@ export default function DoctorMessagesPage() {
 
   const fetchMessages = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem("accessToken");
       if (!token) {
-        router.push('/login');
+        router.push("/login");
         return;
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || 'http://localhost:5000'}/api/message/my-messages`,
+        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/message/my-messages`,
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -47,7 +47,7 @@ export default function DoctorMessagesPage() {
         setMessages(result.data);
       }
     } catch (error) {
-      console.error('Error fetching messages:', error);
+      console.error("Error fetching messages:", error);
     } finally {
       setLoading(false);
     }
@@ -55,25 +55,29 @@ export default function DoctorMessagesPage() {
 
   const markAsRead = async (messageId: string) => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem("accessToken");
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || 'http://localhost:5000'}/api/message/${messageId}/read`,
+        `${
+          process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"
+        }/api/message/${messageId}/read`,
         {
-          method: 'PATCH',
+          method: "PATCH",
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
       const result = await response.json();
       if (result.success) {
-        setMessages(messages.map(msg => 
-          msg._id === messageId ? { ...msg, isRead: true } : msg
-        ));
+        setMessages(
+          messages.map((msg) =>
+            msg._id === messageId ? { ...msg, isRead: true } : msg
+          )
+        );
       }
     } catch (error) {
-      console.error('Error marking as read:', error);
+      console.error("Error marking as read:", error);
     }
   };
 
@@ -85,25 +89,28 @@ export default function DoctorMessagesPage() {
   };
 
   const filteredMessages = messages
-    .filter(msg => {
-      if (filter === 'unread') return !msg.isRead;
-      if (filter === 'read') return msg.isRead;
+    .filter((msg) => {
+      if (filter === "unread") return !msg.isRead;
+      if (filter === "read") return msg.isRead;
       return true;
     })
-    .filter(msg => 
-      msg.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      msg.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      msg.message.toLowerCase().includes(searchQuery.toLowerCase())
+    .filter(
+      (msg) =>
+        msg.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        msg.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        msg.message.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-  const unreadCount = messages.filter(msg => !msg.isRead).length;
+  const unreadCount = messages.filter((msg) => !msg.isRead).length;
 
   if (loading) {
     return (
       <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto mb-6"></div>
-          <p className="text-xl text-gray-600 font-medium">Loading messages...</p>
+          <p className="text-xl text-gray-600 font-medium">
+            Loading messages...
+          </p>
         </div>
       </div>
     );
@@ -117,7 +124,7 @@ export default function DoctorMessagesPage() {
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => router.push('/doctor/dashboard')}
+                onClick={() => router.push("/doctor/dashboard")}
                 className="text-blue-600 hover:text-blue-700 font-medium"
               >
                 ← Back to Dashboard
@@ -149,31 +156,31 @@ export default function DoctorMessagesPage() {
                 />
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setFilter('all')}
+                    onClick={() => setFilter("all")}
                     className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                      filter === 'all'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      filter === "all"
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
                     All ({messages.length})
                   </button>
                   <button
-                    onClick={() => setFilter('unread')}
+                    onClick={() => setFilter("unread")}
                     className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                      filter === 'unread'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      filter === "unread"
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
                     Unread ({unreadCount})
                   </button>
                   <button
-                    onClick={() => setFilter('read')}
+                    onClick={() => setFilter("read")}
                     className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                      filter === 'read'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      filter === "read"
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
                     Read ({messages.length - unreadCount})
@@ -186,7 +193,9 @@ export default function DoctorMessagesPage() {
                 {filteredMessages.length === 0 ? (
                   <div className="p-8 text-center">
                     <div className="text-6xl mb-4">📭</div>
-                    <p className="text-gray-600 font-medium">No messages found</p>
+                    <p className="text-gray-600 font-medium">
+                      No messages found
+                    </p>
                   </div>
                 ) : (
                   filteredMessages.map((message) => (
@@ -194,11 +203,15 @@ export default function DoctorMessagesPage() {
                       key={message._id}
                       onClick={() => handleMessageClick(message)}
                       className={`w-full p-4 border-b border-gray-100 hover:bg-blue-50 transition-all text-left ${
-                        selectedMessage?._id === message._id ? 'bg-blue-50' : ''
-                      } ${!message.isRead ? 'bg-blue-50/50' : ''}`}
+                        selectedMessage?._id === message._id ? "bg-blue-50" : ""
+                      } ${!message.isRead ? "bg-blue-50/50" : ""}`}
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <p className={`font-semibold ${!message.isRead ? 'text-blue-600' : 'text-gray-900'}`}>
+                        <p
+                          className={`font-semibold ${
+                            !message.isRead ? "text-blue-600" : "text-gray-900"
+                          }`}
+                        >
                           {message.patientName}
                         </p>
                         {!message.isRead && (
@@ -212,13 +225,16 @@ export default function DoctorMessagesPage() {
                         {message.message}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {new Date(message.createdAt).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                        {new Date(message.createdAt).toLocaleDateString(
+                          "en-US",
+                          {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )}
                       </p>
                     </button>
                   ))
@@ -238,7 +254,9 @@ export default function DoctorMessagesPage() {
                         {selectedMessage.subject}
                       </h2>
                       <div className="flex items-center space-x-4 text-sm text-gray-600">
-                        <span className="font-medium">From: {selectedMessage.patientName}</span>
+                        <span className="font-medium">
+                          From: {selectedMessage.patientName}
+                        </span>
                         <span>•</span>
                         <span>{selectedMessage.patientEmail}</span>
                       </div>
@@ -254,14 +272,17 @@ export default function DoctorMessagesPage() {
                     )}
                   </div>
                   <p className="text-sm text-gray-500">
-                    {new Date(selectedMessage.createdAt).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    {new Date(selectedMessage.createdAt).toLocaleDateString(
+                      "en-US",
+                      {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )}
                   </p>
                 </div>
 
@@ -274,7 +295,8 @@ export default function DoctorMessagesPage() {
                 {/* Reply Section (Future Feature) */}
                 <div className="mt-8 p-6 bg-gray-50 rounded-xl">
                   <p className="text-sm text-gray-600 mb-4">
-                    💡 <strong>Reply Feature Coming Soon!</strong> For now, please contact the patient directly at{' '}
+                    💡 <strong>Reply Feature Coming Soon!</strong> For now,
+                    please contact the patient directly at{" "}
                     <a
                       href={`mailto:${selectedMessage.patientEmail}`}
                       className="text-blue-600 hover:text-blue-700 font-medium"
