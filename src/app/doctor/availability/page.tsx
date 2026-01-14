@@ -68,7 +68,7 @@ export default function DoctorAvailability() {
     try {
       const token = localStorage.getItem("accessToken");
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/user/me`,
+        `http://localhost:5000/api/user/me`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -206,7 +206,7 @@ export default function DoctorAvailability() {
 
       const token = localStorage.getItem("accessToken");
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/doctor/my-availability`,
+        `http://localhost:5000/api/doctor/my-availability`,
         {
           method: "PUT",
           headers: {

@@ -49,22 +49,8 @@ export default function ForgotPasswordPage() {
     setError("");
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/auth/forget-password`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to send code");
-      }
+      // Static forgot password - simulate sending code
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API delay
 
       setEmail(data.email);
       setStep("reset");
@@ -80,33 +66,12 @@ export default function ForgotPasswordPage() {
     setError("");
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/auth/reset-password`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: data.email,
-            code: data.code,
-            newPassword: data.newPassword,
-          }),
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to reset password");
-      }
+      // Static reset password - simulate successful reset
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API delay
 
       setStep("success");
 
-      // Redirect to login after 3 seconds
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 3000);
+      // Show success message (no redirect)
     } catch (err: any) {
       setError(err.message || "Invalid code or password reset failed.");
     } finally {

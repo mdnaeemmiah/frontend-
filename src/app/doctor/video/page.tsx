@@ -19,7 +19,7 @@ export default function DoctorVideo() {
     try {
       const token = localStorage.getItem("accessToken");
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/user/me`,
+        `http://localhost:5000/api/user/me`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -70,7 +70,7 @@ export default function DoctorVideo() {
       formData.append("video", selectedFile);
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/doctor/my-intro-video`,
+        `http://localhost:5000/api/doctor/my-intro-video`,
         {
           method: "POST",
           headers: {

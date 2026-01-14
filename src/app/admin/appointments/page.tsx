@@ -3,18 +3,85 @@
 
 import { useState, useEffect } from "react";
 
+// Static appointments data
+const STATIC_APPOINTMENTS = [
+  {
+    _id: "apt_001",
+    patientName: "John Doe",
+    patientEmail: "john.doe@example.com",
+    patientPhone: "+880 1712345678",
+    doctorName: "Dr. Sarah Johnson",
+    appointmentDate: "2026-01-20T10:00:00Z",
+    appointmentTime: "10:00 AM",
+    appointmentType: "in-person",
+    reason: "Regular checkup and blood pressure monitoring",
+    status: "pending",
+    createdAt: "2026-01-10T08:30:00Z",
+  },
+  {
+    _id: "apt_002",
+    patientName: "Jane Smith",
+    patientEmail: "jane.smith@example.com",
+    patientPhone: "+880 1823456789",
+    doctorName: "Dr. Michael Chen",
+    appointmentDate: "2026-01-18T14:30:00Z",
+    appointmentTime: "02:30 PM",
+    appointmentType: "virtual",
+    reason: "Follow-up consultation for knee pain",
+    status: "approved",
+    adminNotes: "Appointment confirmed. Virtual meeting link will be sent.",
+    createdAt: "2026-01-14T14:20:00Z",
+  },
+  {
+    _id: "apt_003",
+    patientName: "Robert Brown",
+    patientEmail: "robert.brown@example.com",
+    patientPhone: "+880 1934567890",
+    doctorName: "Dr. Emily Thompson",
+    appointmentDate: "2026-01-22T11:00:00Z",
+    appointmentTime: "11:00 AM",
+    appointmentType: "in-person",
+    reason: "Annual physical examination",
+    status: "approved",
+    adminNotes: "Please bring your previous medical records.",
+    createdAt: "2026-01-12T10:15:00Z",
+  },
+  {
+    _id: "apt_004",
+    patientName: "Lisa Anderson",
+    patientEmail: "lisa.anderson@example.com",
+    patientPhone: "+880 1745678901",
+    doctorName: "Dr. David Kumar",
+    appointmentDate: "2026-01-16T09:00:00Z",
+    appointmentTime: "09:00 AM",
+    appointmentType: "virtual",
+    reason: "Consultation for recurring headaches",
+    status: "rejected",
+    adminNotes: "Doctor not available on this date. Please reschedule.",
+    createdAt: "2026-01-13T16:45:00Z",
+  },
+  {
+    _id: "apt_005",
+    patientName: "Michael Wilson",
+    patientEmail: "michael.wilson@example.com",
+    patientPhone: "+880 1856789012",
+    doctorName: "Dr. Sarah Johnson",
+    appointmentDate: "2026-01-25T15:00:00Z",
+    appointmentTime: "03:00 PM",
+    appointmentType: "in-person",
+    reason: "Cardiology consultation for chest discomfort",
+    status: "pending",
+    createdAt: "2026-01-15T09:00:00Z",
+  },
+];
+
 export default function AdminAppointments() {
-  const [appointments, setAppointments] = useState<any[]>([]);
-  const [filteredAppointments, setFilteredAppointments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [appointments, setAppointments] = useState<any[]>(STATIC_APPOINTMENTS);
+  const [filteredAppointments, setFilteredAppointments] = useState<any[]>(STATIC_APPOINTMENTS);
   const [filter, setFilter] = useState("all");
   const [showModal, setShowModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [adminNotes, setAdminNotes] = useState("");
-
-  useEffect(() => {
-    fetchAppointments();
-  }, []);
 
   useEffect(() => {
     if (filter === "all") {
@@ -24,65 +91,21 @@ export default function AdminAppointments() {
     }
   }, [filter, appointments]);
 
-  const fetchAppointments = async () => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/appointment`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const result = await response.json();
-      if (result.success) {
-        setAppointments(result.data);
-        setFilteredAppointments(result.data);
-      }
-    } catch (error) {
-      console.error("Error fetching appointments:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAppointmentAction = async (
+  const handleAppointmentAction = (
     appointmentId: string,
     status: "approved" | "rejected"
   ) => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BASE_API || ""
-        }/api/appointment/${appointmentId}/status`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            status,
-            adminNotes,
-          }),
-        }
-      );
-
-      const result = await response.json();
-      if (result.success) {
-        alert(`Appointment ${status} successfully!`);
-        setShowModal(false);
-        setSelectedAppointment(null);
-        setAdminNotes("");
-        fetchAppointments();
-      }
-    } catch (error) {
-      console.error("Error updating appointment:", error);
-      alert("Failed to update appointment");
-    }
+    // Update appointment status locally
+    const updatedAppointments = appointments.map((apt) =>
+      apt._id === appointmentId
+        ? { ...apt, status, adminNotes: adminNotes || apt.adminNotes }
+        : apt
+    );
+    setAppointments(updatedAppointments);
+    alert(`Appointment ${status} successfully!`);
+    setShowModal(false);
+    setSelectedAppointment(null);
+    setAdminNotes("");
   };
 
   const getStatusBadge = (status: string) => {
@@ -95,20 +118,6 @@ export default function AdminAppointments() {
     };
     return styles[status as keyof typeof styles] || "bg-gray-100 text-gray-700";
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="relative w-16 h-16 mx-auto mb-4">
-            <div className="absolute inset-0 border-4 border-[#ebe2cd] rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-transparent border-t-[#2952a1] rounded-full animate-spin"></div>
-          </div>
-          <p className="text-gray-600">Loading appointments...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div>
@@ -152,11 +161,11 @@ export default function AdminAppointments() {
             <p className="text-gray-500">No appointments found</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
+          <div className="p-6 space-y-4">
             {filteredAppointments.map((appointment) => (
               <div
                 key={appointment._id}
-                className="p-6 hover:bg-gray-50 transition-colors"
+                className="p-6 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors border border-gray-200"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">

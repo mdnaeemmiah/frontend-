@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
@@ -11,17 +11,15 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const totalSteps = 4;
   const [loading, setLoading] = useState(false);
-  const [checkingProfile, setCheckingProfile] = useState(true);
-  const [isUpdating, setIsUpdating] = useState(false);
 
   const [formData, setFormData] = useState({
     careType: "",
     careMode: "",
     location: {
-      latitude: 0,
-      longitude: 0,
+      latitude: 23.8103, // Fake Dhaka coordinates
+      longitude: 90.4125,
       radius: 5, // Default 5km
-      address: "",
+      address: "Dhaka, Bangladesh",
     },
     communicationStyle: "",
     availabilityPreferences: {
@@ -33,60 +31,6 @@ export default function OnboardingPage() {
     insuranceProvider: "",
     vibePreferences: [] as string[],
   });
-
-  useEffect(() => {
-    checkExistingProfile();
-  }, []);
-
-  const checkExistingProfile = async () => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/patient/profile`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const result = await response.json();
-
-      if (result.success && result.data) {
-        // Profile exists - load it and mark as updating
-        setIsUpdating(true);
-        const prefs = result.data.preferences;
-        setFormData({
-          careType: prefs.careType || "",
-          careMode: prefs.careMode || "",
-          location: prefs.location || {
-            latitude: 0,
-            longitude: 0,
-            radius: 5,
-            address: "",
-          },
-          communicationStyle: prefs.communicationStyle || "",
-          availabilityPreferences: prefs.availabilityPreferences || {
-            weekendAvailability: false,
-            eveningAppointments: false,
-            urgentCare: false,
-          },
-          languagePreferences: prefs.languagePreferences || [],
-          insuranceProvider: prefs.insuranceProvider || "",
-          vibePreferences: prefs.vibePreferences || [],
-        });
-      }
-    } catch (error) {
-      console.error("Error checking profile:", error);
-    } finally {
-      setCheckingProfile(false);
-    }
-  };
 
   const getCurrentLocation = () => {
     if ("geolocation" in navigator) {
@@ -112,34 +56,15 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     setLoading(true);
-    try {
-      const token = localStorage.getItem("accessToken");
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/patient/profile`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(formData),
-        }
-      );
-
-      const result = await response.json();
-      if (result.success) {
-        router.push("/matches");
-      } else {
-        alert(result.message || "Failed to save preferences");
-      }
-    } catch (error) {
-      console.error("Error saving preferences:", error);
-      alert("Failed to save preferences");
-    } finally {
+    
+    // Simulate saving
+    setTimeout(() => {
       setLoading(false);
-    }
+      alert("Preferences saved successfully!");
+      router.push("/matches");
+    }, 1000);
   };
 
   const nextStep = () => {
@@ -156,22 +81,6 @@ export default function OnboardingPage() {
       : [...array, item];
   };
 
-  if (checkingProfile) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-[#ebe2cd] via-white to-[#ebe2cd]/50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative w-16 h-16 mx-auto mb-6">
-            <div className="absolute inset-0 border-4 border-[#ebe2cd] rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-transparent border-t-[#2952a1] rounded-full animate-spin"></div>
-          </div>
-          <p className="text-xl text-gray-600 font-medium">
-            Loading your profile...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
       <Navigation />
@@ -183,15 +92,11 @@ export default function OnboardingPage() {
               <div className="flex justify-between items-center mb-6">
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">
-                    {isUpdating
-                      ? "Update Your Preferences"
-                      : "Find Your Perfect Doctor"}
+                    Find Your Perfect Doctor
                   </h1>
-                  {isUpdating && (
-                    <p className="text-sm text-gray-600 mt-1">
-                      Update your preferences to get new doctor matches
-                    </p>
-                  )}
+                  <p className="text-sm text-gray-600 mt-1">
+                    Tell us your preferences to get personalized matches
+                  </p>
                 </div>
                 <span className="text-sm text-gray-500 bg-gray-100 px-4 py-2 rounded-full font-medium">
                   Step {step} of {totalSteps}
@@ -316,7 +221,7 @@ export default function OnboardingPage() {
                     Your Location
                   </h3>
 
-                  {formData.location.latitude === 0 ? (
+                  {formData.location.latitude !== 23.8103 ? (
                     <div className="text-center py-8">
                       <p className="text-gray-600 mb-6">
                         We need your location to find nearby doctors
@@ -569,7 +474,6 @@ export default function OnboardingPage() {
                   disabled={
                     (step === 1 &&
                       (!formData.careType || !formData.careMode)) ||
-                    (step === 2 && formData.location.latitude === 0) ||
                     (step === 3 && !formData.communicationStyle)
                   }
                   className="ml-auto bg-gradient-to-r from-[#2952a1] to-[#1e3d7a] text-white px-8 py-3 rounded-xl font-semibold hover:from-[#1e3d7a] hover:to-[#2952a1] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -583,11 +487,7 @@ export default function OnboardingPage() {
                   disabled={loading}
                   className="ml-auto bg-gradient-to-r from-green-600 to-[#2952a1] text-white px-8 py-3 rounded-xl font-semibold hover:from-green-700 hover:to-[#1e3d7a] transition-all disabled:opacity-50"
                 >
-                  {loading
-                    ? "Saving..."
-                    : isUpdating
-                    ? "✓ Update & Find Matches"
-                    : "✓ Find My Matches"}
+                  {loading ? "Saving..." : "✓ Find My Matches"}
                 </button>
               )}
             </div>

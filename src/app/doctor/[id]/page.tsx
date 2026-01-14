@@ -1,9 +1,9 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 
 export default function DoctorProfilePage() {
   const router = useRouter();
@@ -17,17 +17,17 @@ export default function DoctorProfilePage() {
   const [showVideoModal, setShowVideoModal] = useState(false);
 
   const [messageForm, setMessageForm] = useState({
-    subject: '',
-    message: '',
+    subject: "",
+    message: "",
   });
 
   const [appointmentForm, setAppointmentForm] = useState({
-    appointmentDate: '',
-    appointmentDay: '',
-    appointmentTime: '',
-    appointmentType: 'in-person' as 'in-person' | 'virtual',
-    reason: '',
-    patientPhone: '',
+    appointmentDate: "",
+    appointmentDay: "",
+    appointmentTime: "",
+    appointmentType: "in-person" as "in-person" | "virtual",
+    reason: "",
+    patientPhone: "",
   });
 
   const [availableTimeSlots, setAvailableTimeSlots] = useState<any[]>([]);
@@ -38,11 +38,11 @@ export default function DoctorProfilePage() {
 
   const fetchDoctorProfile = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem("accessToken");
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || 'https://practice-backend-oauth-image-video.vercel.app'}/api/doctor/${doctorId}`,
+        `http://localhost:5000/api/doctor/${doctorId}`,
         {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         }
       );
 
@@ -51,7 +51,7 @@ export default function DoctorProfilePage() {
         setDoctor(result.data);
       }
     } catch (error) {
-      console.error('Error fetching doctor:', error);
+      console.error("Error fetching doctor:", error);
     } finally {
       setLoading(false);
     }
@@ -59,23 +59,23 @@ export default function DoctorProfilePage() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem("accessToken");
       const userResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || 'https://practice-backend-oauth-image-video.vercel.app'}/api/user/me`,
+        `http://localhost:5000/api/user/me`,
         {
-          headers: { 'Authorization': `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
       const userData = await userResponse.json();
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || 'https://practice-backend-oauth-image-video.vercel.app'}/api/message`,
+        `http://localhost:5000/api/message`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             patientId: userData.data._id,
@@ -90,69 +90,78 @@ export default function DoctorProfilePage() {
 
       const result = await response.json();
       if (result.success) {
-        alert('Message sent successfully!');
+        alert("Message sent successfully!");
         setShowMessageModal(false);
-        setMessageForm({ subject: '', message: '' });
+        setMessageForm({ subject: "", message: "" });
       }
     } catch (error) {
-      console.error('Error sending message:', error);
-      alert('Failed to send message');
+      console.error("Error sending message:", error);
+      alert("Failed to send message");
     }
   };
 
   const handleDateChange = (date: string) => {
-    setAppointmentForm({ ...appointmentForm, appointmentDate: date, appointmentTime: '' });
-    
+    setAppointmentForm({
+      ...appointmentForm,
+      appointmentDate: date,
+      appointmentTime: "",
+    });
+
     // First check if there's a specific date availability
-    const specificDateAvail = doctor?.availability?.flatMap((avail: any) => avail.specificDates || [])
-      .find((sd: any) => new Date(sd.date).toISOString().split('T')[0] === date);
-    
+    const specificDateAvail = doctor?.availability
+      ?.flatMap((avail: any) => avail.specificDates || [])
+      .find(
+        (sd: any) => new Date(sd.date).toISOString().split("T")[0] === date
+      );
+
     if (specificDateAvail && specificDateAvail.isAvailable) {
       setAvailableTimeSlots(specificDateAvail.timeSlots);
       return;
     }
-    
+
     // Otherwise check weekly availability
     const selectedDate = new Date(date);
-    const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-    
+    const dayOfWeek = selectedDate
+      .toLocaleDateString("en-US", { weekday: "long" })
+      .toLowerCase();
+
     const dayAvailability = doctor?.availability?.find(
       (avail: any) => avail.day.toLowerCase() === dayOfWeek && avail.isAvailable
     );
-    
+
     if (dayAvailability) {
       setAvailableTimeSlots(dayAvailability.timeSlots);
-      setAppointmentForm(prev => ({ ...prev, appointmentDay: dayOfWeek }));
+      setAppointmentForm((prev) => ({ ...prev, appointmentDay: dayOfWeek }));
     } else {
       setAvailableTimeSlots([]);
-      alert('Doctor is not available on this day. Please select another date.');
+      alert("Doctor is not available on this day. Please select another date.");
     }
   };
 
   const handleBookAppointment = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!appointmentForm.appointmentDate || !appointmentForm.appointmentTime) {
-      alert('Please select both date and time');
+      alert("Please select both date and time");
       return;
     }
-    
+
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem("accessToken");
       const userResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || 'https://practice-backend-oauth-image-video.vercel.app'}/api/user/me`,
+        `http://localhost:5000/api/user/me`,
         {
-          headers: { 'Authorization': `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
       const userData = await userResponse.json();
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || 'https://practice-backend-oauth-image-video.vercel.app'}/api/appointment`,
+        `http://localhost:5000/api/appointment`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             patientId: userData.data._id,
@@ -171,21 +180,21 @@ export default function DoctorProfilePage() {
 
       const result = await response.json();
       if (result.success) {
-        alert('Appointment request sent! Admin will review and approve.');
+        alert("Appointment request sent! Admin will review and approve.");
         setShowAppointmentModal(false);
         setAppointmentForm({
-          appointmentDate: '',
-          appointmentDay: '',
-          appointmentTime: '',
-          appointmentType: 'in-person',
-          reason: '',
-          patientPhone: '',
+          appointmentDate: "",
+          appointmentDay: "",
+          appointmentTime: "",
+          appointmentType: "in-person",
+          reason: "",
+          patientPhone: "",
         });
         setAvailableTimeSlots([]);
       }
     } catch (error) {
-      console.error('Error booking appointment:', error);
-      alert('Failed to book appointment');
+      console.error("Error booking appointment:", error);
+      alert("Failed to book appointment");
     }
   };
 
@@ -201,9 +210,11 @@ export default function DoctorProfilePage() {
     return (
       <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Doctor not found</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Doctor not found
+          </h2>
           <button
-            onClick={() => router.push('/matches')}
+            onClick={() => router.push("/matches")}
             className="text-blue-600 hover:text-blue-700 font-medium"
           >
             ← Back to Matches
@@ -238,12 +249,17 @@ export default function DoctorProfilePage() {
                       className="w-24 h-24 rounded-2xl object-cover"
                     />
                   ) : (
-                    doctor.name.split(' ').map((n: string) => n[0]).join('')
+                    doctor.name
+                      .split(" ")
+                      .map((n: string) => n[0])
+                      .join("")
                   )}
                 </div>
                 <div>
                   <h1 className="text-4xl font-bold mb-2">{doctor.name}</h1>
-                  <p className="text-xl text-blue-100 mb-2">{doctor.specialization}</p>
+                  <p className="text-xl text-blue-100 mb-2">
+                    {doctor.specialization}
+                  </p>
                   <div className="flex items-center space-x-4">
                     {doctor.rating && (
                       <div className="flex items-center">
@@ -299,7 +315,9 @@ export default function DoctorProfilePage() {
               {/* Qualification */}
               {doctor.qualification && (
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-2">Qualification</h3>
+                  <h3 className="font-bold text-gray-900 mb-2">
+                    Qualification
+                  </h3>
                   <p className="text-gray-700">{doctor.qualification}</p>
                 </div>
               )}
@@ -307,7 +325,9 @@ export default function DoctorProfilePage() {
               {/* Consultation Fee */}
               {doctor.consultationFee && (
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-2">Consultation Fee</h3>
+                  <h3 className="font-bold text-gray-900 mb-2">
+                    Consultation Fee
+                  </h3>
                   <p className="text-gray-700 text-2xl font-bold text-green-600">
                     ${doctor.consultationFee}
                   </p>
@@ -359,7 +379,7 @@ export default function DoctorProfilePage() {
                       key={tag}
                       className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-xl text-sm font-medium"
                     >
-                      ✨ {tag.replace('-', ' ')}
+                      ✨ {tag.replace("-", " ")}
                     </span>
                   ))}
                 </div>
@@ -369,11 +389,20 @@ export default function DoctorProfilePage() {
             {/* Chamber Location */}
             {doctor.chamberLocation?.address && (
               <div className="bg-gray-50 rounded-2xl p-6">
-                <h3 className="font-bold text-gray-900 mb-3">📍 Chamber Location</h3>
-                <p className="text-gray-700">{doctor.chamberLocation.address}</p>
-                {(doctor.chamberLocation.city || doctor.chamberLocation.zipCode) && (
+                <h3 className="font-bold text-gray-900 mb-3">
+                  📍 Chamber Location
+                </h3>
+                <p className="text-gray-700">
+                  {doctor.chamberLocation.address}
+                </p>
+                {(doctor.chamberLocation.city ||
+                  doctor.chamberLocation.zipCode) && (
                   <p className="text-gray-700">
-                    {doctor.chamberLocation.city}{doctor.chamberLocation.city && doctor.chamberLocation.zipCode && ', '}{doctor.chamberLocation.zipCode}
+                    {doctor.chamberLocation.city}
+                    {doctor.chamberLocation.city &&
+                      doctor.chamberLocation.zipCode &&
+                      ", "}
+                    {doctor.chamberLocation.zipCode}
                   </p>
                 )}
                 {doctor.chamberLocation.googleMapsUrl && (
@@ -396,23 +425,33 @@ export default function DoctorProfilePage() {
       {showMessageModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Send Message to {doctor.name}</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Send Message to {doctor.name}
+            </h2>
             <form onSubmit={handleSendMessage} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Subject</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Subject
+                </label>
                 <input
                   type="text"
                   value={messageForm.subject}
-                  onChange={(e) => setMessageForm({ ...messageForm, subject: e.target.value })}
+                  onChange={(e) =>
+                    setMessageForm({ ...messageForm, subject: e.target.value })
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Message</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Message
+                </label>
                 <textarea
                   value={messageForm.message}
-                  onChange={(e) => setMessageForm({ ...messageForm, message: e.target.value })}
+                  onChange={(e) =>
+                    setMessageForm({ ...messageForm, message: e.target.value })
+                  }
                   rows={5}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
@@ -442,19 +481,23 @@ export default function DoctorProfilePage() {
       {showAppointmentModal && (
         <div className="fixed  inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto ">
           <div className="bg-white rounded-3xl p-8 max-w-2xl w-full my-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Book Appointment with {doctor.name}</h2>
-            
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Book Appointment with {doctor.name}
+            </h2>
+
             {/* Doctor Info Summary */}
             <div className="bg-blue-50 rounded-2xl p-6 mb-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Consultation Fee</p>
                   <p className="text-2xl font-bold text-blue-600">
-                    ${doctor.consultationFee || 'N/A'}
+                    ${doctor.consultationFee || "N/A"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Available Options</p>
+                  <p className="text-sm text-gray-600 mb-1">
+                    Available Options
+                  </p>
                   <div className="flex gap-2">
                     {doctor.inPerson && (
                       <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
@@ -474,11 +517,15 @@ export default function DoctorProfilePage() {
             {/* Availability Schedule */}
             {doctor.availability && doctor.availability.length > 0 && (
               <div className="mb-6">
-                <h3 className="font-bold text-gray-900 mb-3">📅 Doctor's Availability</h3>
+                <h3 className="font-bold text-gray-900 mb-3">
+                  📅 Doctor's Availability
+                </h3>
                 <div className="bg-gray-50 rounded-2xl p-4 max-h-64 overflow-y-auto">
                   {/* Weekly Availability */}
                   <div className="mb-4">
-                    <p className="text-sm font-semibold text-gray-700 mb-2">Weekly Schedule:</p>
+                    <p className="text-sm font-semibold text-gray-700 mb-2">
+                      Weekly Schedule:
+                    </p>
                     {doctor.availability
                       .filter((avail: any) => avail.isAvailable)
                       .map((avail: any, index: number) => (
@@ -501,19 +548,24 @@ export default function DoctorProfilePage() {
                   </div>
 
                   {/* Specific Dates */}
-                  {doctor.availability.some((avail: any) => avail.specificDates && avail.specificDates.length > 0) && (
+                  {doctor.availability.some(
+                    (avail: any) =>
+                      avail.specificDates && avail.specificDates.length > 0
+                  ) && (
                     <div className="border-t border-gray-200 pt-3">
-                      <p className="text-sm font-semibold text-gray-700 mb-2">Specific Dates:</p>
+                      <p className="text-sm font-semibold text-gray-700 mb-2">
+                        Specific Dates:
+                      </p>
                       {doctor.availability
                         .flatMap((avail: any) => avail.specificDates || [])
                         .filter((sd: any) => sd.isAvailable)
                         .map((sd: any, idx: number) => (
                           <div key={idx} className="mb-2 last:mb-0">
                             <p className="font-semibold text-blue-600 text-sm">
-                              {new Date(sd.date).toLocaleDateString('en-US', {
-                                weekday: 'short',
-                                month: 'short',
-                                day: 'numeric',
+                              {new Date(sd.date).toLocaleDateString("en-US", {
+                                weekday: "short",
+                                month: "short",
+                                day: "numeric",
                               })}
                             </p>
                             <div className="flex flex-wrap gap-1">
@@ -540,29 +592,34 @@ export default function DoctorProfilePage() {
             <form onSubmit={handleBookAppointment} className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Select Appointment Date <span className="text-red-500">*</span>
+                  Select Appointment Date{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
                   value={appointmentForm.appointmentDate}
                   onChange={(e) => handleDateChange(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
+                  min={new Date().toISOString().split("T")[0]}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
                 {appointmentForm.appointmentDate && (
                   <p className="text-xs text-gray-600 mt-2">
-                    📅 {new Date(appointmentForm.appointmentDate).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      month: 'long',
-                      day: 'numeric',
-                      year: 'numeric',
+                    📅{" "}
+                    {new Date(
+                      appointmentForm.appointmentDate
+                    ).toLocaleDateString("en-US", {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
                     })}
                   </p>
                 )}
               </div>
 
-              {appointmentForm.appointmentDate && availableTimeSlots.length > 0 ? (
+              {appointmentForm.appointmentDate &&
+              availableTimeSlots.length > 0 ? (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-3">
                     Select Time Slot <span className="text-red-500">*</span>
@@ -572,11 +629,16 @@ export default function DoctorProfilePage() {
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => setAppointmentForm({ ...appointmentForm, appointmentTime: slot.startTime })}
+                        onClick={() =>
+                          setAppointmentForm({
+                            ...appointmentForm,
+                            appointmentTime: slot.startTime,
+                          })
+                        }
                         className={`px-3 py-2 rounded-lg text-sm font-medium transition-all border-2 ${
                           appointmentForm.appointmentTime === slot.startTime
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300'
+                            ? "border-blue-500 bg-blue-50 text-blue-700"
+                            : "border-gray-200 bg-white text-gray-700 hover:border-blue-300"
                         }`}
                       >
                         {slot.startTime}
@@ -592,7 +654,8 @@ export default function DoctorProfilePage() {
               ) : appointmentForm.appointmentDate ? (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
                   <p className="text-sm text-red-700">
-                    ❌ Doctor is not available on this date. Please select another date.
+                    ❌ Doctor is not available on this date. Please select
+                    another date.
                   </p>
                 </div>
               ) : null}
@@ -604,7 +667,12 @@ export default function DoctorProfilePage() {
                 <input
                   type="tel"
                   value={appointmentForm.patientPhone}
-                  onChange={(e) => setAppointmentForm({ ...appointmentForm, patientPhone: e.target.value })}
+                  onChange={(e) =>
+                    setAppointmentForm({
+                      ...appointmentForm,
+                      patientPhone: e.target.value,
+                    })
+                  }
                   placeholder="+1 (555) 123-4567"
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
@@ -617,16 +685,25 @@ export default function DoctorProfilePage() {
                 </label>
                 <div className="space-y-3">
                   {doctor.inPerson && (
-                    <label className={`flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                      appointmentForm.appointmentType === 'in-person'
-                        ? 'border-purple-500 bg-purple-50'
-                        : 'border-gray-200 hover:border-purple-300'
-                    }`}>
+                    <label
+                      className={`flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                        appointmentForm.appointmentType === "in-person"
+                          ? "border-purple-500 bg-purple-50"
+                          : "border-gray-200 hover:border-purple-300"
+                      }`}
+                    >
                       <input
                         type="radio"
                         value="in-person"
-                        checked={appointmentForm.appointmentType === 'in-person'}
-                        onChange={(e) => setAppointmentForm({ ...appointmentForm, appointmentType: e.target.value as any })}
+                        checked={
+                          appointmentForm.appointmentType === "in-person"
+                        }
+                        onChange={(e) =>
+                          setAppointmentForm({
+                            ...appointmentForm,
+                            appointmentType: e.target.value as any,
+                          })
+                        }
                         className="mt-1 mr-3"
                       />
                       <div className="flex-1">
@@ -647,18 +724,25 @@ export default function DoctorProfilePage() {
                       </div>
                     </label>
                   )}
-                  
+
                   {doctor.telehealth && (
-                    <label className={`flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                      appointmentForm.appointmentType === 'virtual'
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-gray-200 hover:border-green-300'
-                    }`}>
+                    <label
+                      className={`flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                        appointmentForm.appointmentType === "virtual"
+                          ? "border-green-500 bg-green-50"
+                          : "border-gray-200 hover:border-green-300"
+                      }`}
+                    >
                       <input
                         type="radio"
                         value="virtual"
-                        checked={appointmentForm.appointmentType === 'virtual'}
-                        onChange={(e) => setAppointmentForm({ ...appointmentForm, appointmentType: e.target.value as any })}
+                        checked={appointmentForm.appointmentType === "virtual"}
+                        onChange={(e) =>
+                          setAppointmentForm({
+                            ...appointmentForm,
+                            appointmentType: e.target.value as any,
+                          })
+                        }
                         className="mt-1 mr-3"
                       />
                       <div className="flex-1">
@@ -689,7 +773,12 @@ export default function DoctorProfilePage() {
                 </label>
                 <textarea
                   value={appointmentForm.reason}
-                  onChange={(e) => setAppointmentForm({ ...appointmentForm, reason: e.target.value })}
+                  onChange={(e) =>
+                    setAppointmentForm({
+                      ...appointmentForm,
+                      reason: e.target.value,
+                    })
+                  }
                   rows={4}
                   placeholder="Please describe your symptoms or reason for consultation..."
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -700,9 +789,11 @@ export default function DoctorProfilePage() {
               {/* Fee Summary */}
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-4 border border-blue-200">
                 <div className="flex justify-between items-center">
-                  <span className="font-semibold text-gray-900">Consultation Fee:</span>
+                  <span className="font-semibold text-gray-900">
+                    Consultation Fee:
+                  </span>
                   <span className="text-2xl font-bold text-blue-600">
-                    ${doctor.consultationFee || 'TBD'}
+                    ${doctor.consultationFee || "TBD"}
                   </span>
                 </div>
                 <p className="text-xs text-gray-600 mt-2">
@@ -723,12 +814,12 @@ export default function DoctorProfilePage() {
                   onClick={() => {
                     setShowAppointmentModal(false);
                     setAppointmentForm({
-                      appointmentDate: '',
-                      appointmentDay: '',
-                      appointmentTime: '',
-                      appointmentType: 'in-person',
-                      reason: '',
-                      patientPhone: '',
+                      appointmentDate: "",
+                      appointmentDay: "",
+                      appointmentTime: "",
+                      appointmentType: "in-person",
+                      reason: "",
+                      patientPhone: "",
                     });
                     setAvailableTimeSlots([]);
                   }}
@@ -739,7 +830,8 @@ export default function DoctorProfilePage() {
               </div>
 
               <p className="text-xs text-gray-500 text-center">
-                Your appointment request will be sent to admin for approval. You'll be notified once approved.
+                Your appointment request will be sent to admin for approval.
+                You'll be notified once approved.
               </p>
             </form>
           </div>
@@ -751,7 +843,9 @@ export default function DoctorProfilePage() {
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
           <div className="max-w-4xl w-full">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-white">Intro Video - {doctor.name}</h2>
+              <h2 className="text-2xl font-bold text-white">
+                Intro Video - {doctor.name}
+              </h2>
               <button
                 onClick={() => setShowVideoModal(false)}
                 className="text-white hover:text-gray-300 text-3xl"

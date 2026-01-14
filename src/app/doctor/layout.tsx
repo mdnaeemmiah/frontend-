@@ -1,11 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import Image from "next/image";
-import logo from "../../assets/Frame.png";
+
+// Static doctor data
+const STATIC_DOCTOR = {
+  name: "Sarah Johnson",
+  email: "sarah.johnson@novahealth.com",
+  specialization: "Cardiologist",
+  role: "doctor",
+};
 
 export default function DoctorLayout({
   children,
@@ -14,57 +20,17 @@ export default function DoctorLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [doctor, setDoctor] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [doctor] = useState<any>(STATIC_DOCTOR);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  useEffect(() => {
-    const fetchDoctorProfile = async () => {
-      try {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-          router.push("/login");
-          return;
-        }
-
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/user/me`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          console.error("Failed to fetch profile:", response.status);
-          router.push("/login");
-          return;
-        }
-
-        const result = await response.json();
-
-        if (result.success && result.data && result.data.role === "doctor") {
-          setDoctor(result.data);
-        } else {
-          console.error("User is not a doctor or data is missing");
-          router.push("/login");
-        }
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-        router.push("/login");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDoctorProfile();
-  }, [router]);
-
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    router.push("/login");
+    // Clear any stored tokens
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+    }
+    // Redirect to home page
+    router.push("/");
   };
 
   const menuItems = [
@@ -94,20 +60,6 @@ export default function DoctorLayout({
       path: "/doctor/settings",
     },
   ];
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative w-16 h-16 mx-auto mb-4">
-            <div className="absolute inset-0 border-4 border-[#ebe2cd] rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-transparent border-t-[#2952a1] rounded-full animate-spin"></div>
-          </div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">

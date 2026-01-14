@@ -46,28 +46,14 @@ export default function Navigation() {
       return;
     }
 
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/user/me`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const result = await response.json();
-      if (result.success) {
-        setIsLoggedIn(true);
-        setUser(result.data);
-      } else {
-        setIsLoggedIn(false);
-        setUser(null);
-        localStorage.removeItem("accessToken");
-      }
-    } catch (error) {
-      console.error("Auth check failed:", error);
-      setIsLoggedIn(false);
-      setUser(null);
-    }
+    // Static user data - no API call
+    setIsLoggedIn(true);
+    setUser({
+      name: "John Doe",
+      email: "john.doe@example.com",
+      role: "patient",
+      profileImg: "https://i.pravatar.cc/150?img=33",
+    });
   };
 
   const handleLogout = () => {
@@ -122,10 +108,10 @@ export default function Navigation() {
               <div className="absolute inset-0 bg-[#ebe2cd]/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
             </Link>
             <Link
-              href="/patient/appointments"
+              href="/search-doctors"
               className="relative text-gray-600 hover:text-[#2952a1] px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 group"
             >
-              <span className="relative z-10">My Appointments</span>
+              <span className="relative z-10">All Doctors</span>
               <div className="absolute inset-0 bg-[#ebe2cd]/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
             </Link>
 

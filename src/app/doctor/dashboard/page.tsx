@@ -2,97 +2,58 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 
+// Static data
+const STATIC_STATS = {
+  todayAppointments: 5,
+  totalAppointments: 48,
+  totalPatients: 32,
+  unreadMessages: 3,
+};
+
+const STATIC_APPOINTMENTS = [
+  {
+    _id: "1",
+    patientName: "John Smith",
+    appointmentDate: new Date().toISOString(),
+    appointmentTime: "10:00 AM",
+    status: "approved",
+  },
+  {
+    _id: "2",
+    patientName: "Emily Johnson",
+    appointmentDate: new Date().toISOString(),
+    appointmentTime: "11:30 AM",
+    status: "approved",
+  },
+  {
+    _id: "3",
+    patientName: "Michael Brown",
+    appointmentDate: new Date(Date.now() + 86400000).toISOString(),
+    appointmentTime: "2:00 PM",
+    status: "pending",
+  },
+  {
+    _id: "4",
+    patientName: "Sarah Davis",
+    appointmentDate: new Date(Date.now() + 86400000).toISOString(),
+    appointmentTime: "3:30 PM",
+    status: "approved",
+  },
+  {
+    _id: "5",
+    patientName: "David Wilson",
+    appointmentDate: new Date(Date.now() + 172800000).toISOString(),
+    appointmentTime: "9:00 AM",
+    status: "approved",
+  },
+];
+
 export default function DoctorDashboard() {
-  const [stats, setStats] = useState({
-    todayAppointments: 0,
-    totalAppointments: 0,
-    totalPatients: 0,
-    unreadMessages: 0,
-  });
-  const [loading, setLoading] = useState(true);
-  const [recentAppointments, setRecentAppointments] = useState<any[]>([]);
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        window.location.href = "/login";
-        return;
-      }
-
-      // Fetch appointments
-      const appointmentsRes = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"
-        }/api/appointment/doctor-appointments`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const appointments = await appointmentsRes.json();
-
-      if (appointments.success) {
-        const today = new Date().toDateString();
-        const todayAppts = appointments.data.filter(
-          (a: any) => new Date(a.appointmentDate).toDateString() === today
-        );
-
-        setStats({
-          todayAppointments: todayAppts.length,
-          totalAppointments: appointments.data.length,
-          totalPatients: new Set(appointments.data.map((a: any) => a.patientId))
-            .size,
-          unreadMessages: 0,
-        });
-
-        setRecentAppointments(appointments.data.slice(0, 5));
-      }
-
-      // Fetch messages
-      try {
-        const messagesRes = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/message/my-messages`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        const messages = await messagesRes.json();
-        if (messages.success) {
-          const unread = messages.data.filter((msg: any) => !msg.isRead).length;
-          setStats((prev) => ({ ...prev, unreadMessages: unread }));
-        }
-      } catch (error) {
-        console.error("Error fetching messages:", error);
-      }
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="relative w-16 h-16 mx-auto mb-4">
-            <div className="absolute inset-0 border-4 border-[#ebe2cd] rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-transparent border-t-[#2952a1] rounded-full animate-spin"></div>
-          </div>
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
+  const [stats] = useState(STATIC_STATS);
+  const [recentAppointments] = useState(STATIC_APPOINTMENTS);
 
   return (
     <div>
@@ -223,39 +184,33 @@ export default function DoctorDashboard() {
           </Link>
         </div>
 
-        {recentAppointments.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500">No appointments yet</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {recentAppointments.map((appointment: any) => (
-              <div
-                key={appointment._id}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-              >
-                <div className="flex-1">
-                  <p className="font-semibold text-gray-900">
-                    {appointment.patientName}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {new Date(appointment.appointmentDate).toLocaleDateString()}{" "}
-                    at {appointment.appointmentTime}
-                  </p>
-                </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    appointment.status === "approved"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-[#ebe2cd] text-[#2952a1]"
-                  }`}
-                >
-                  {appointment.status}
-                </span>
+        <div className="space-y-3">
+          {recentAppointments.map((appointment: any) => (
+            <div
+              key={appointment._id}
+              className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+            >
+              <div className="flex-1">
+                <p className="font-semibold text-gray-900">
+                  {appointment.patientName}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {new Date(appointment.appointmentDate).toLocaleDateString()}{" "}
+                  at {appointment.appointmentTime}
+                </p>
               </div>
-            ))}
-          </div>
-        )}
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                  appointment.status === "approved"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-[#ebe2cd] text-[#2952a1]"
+                }`}
+              >
+                {appointment.status}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Navigation from "../../../components/Navigation";
 import Footer from "../../../components/Footer";
@@ -18,110 +18,52 @@ interface User {
   createdAt: string;
 }
 
+// Static user data
+const STATIC_USER: User = {
+  _id: "user_001",
+  name: "John Doe",
+  email: "john.doe@example.com",
+  phone: "+880 1712345678",
+  address: "House 45, Road 12, Block C",
+  city: "Dhaka",
+  zipCode: "1212",
+  profileImg: "https://i.pravatar.cc/150?img=12",
+  role: "patient",
+  createdAt: "2025-01-01T00:00:00Z",
+};
+
 export default function PatientProfile() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User>(STATIC_USER);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    address: "",
-    city: "",
-    zipCode: "",
+    name: STATIC_USER.name,
+    phone: STATIC_USER.phone || "",
+    address: STATIC_USER.address || "",
+    city: STATIC_USER.city || "",
+    zipCode: STATIC_USER.zipCode || "",
   });
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/user/me`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const result = await response.json();
-      if (result.success) {
-        setUser(result.data);
-        setFormData({
-          name: result.data.name || "",
-          phone: result.data.phone || "",
-          address: result.data.address || "",
-          city: result.data.city || "",
-          zipCode: result.data.zipCode || "",
-        });
-      } else {
-        router.push("/login");
-      }
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
-    try {
-      const token = localStorage.getItem("accessToken");
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/user/profile`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(formData),
-        }
-      );
-
-      const result = await response.json();
-      if (result.success) {
-        alert("Profile updated successfully!");
-        setEditing(false);
-        fetchProfile();
-      } else {
-        alert(result.message || "Failed to update profile");
-      }
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      alert("Failed to update profile");
-    } finally {
+    // Simulate saving
+    setTimeout(() => {
+      setUser({
+        ...user,
+        name: formData.name,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+        zipCode: formData.zipCode,
+      });
       setSaving(false);
-    }
+      setEditing(false);
+      alert("Profile updated successfully!");
+    }, 500);
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative w-16 h-16 mx-auto mb-4">
-            <div className="absolute inset-0 border-4 border-[#ebe2cd] rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-transparent border-t-[#2952a1] rounded-full animate-spin"></div>
-          </div>
-          <p className="text-gray-600">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
 
   const getInitials = (name: string) => {
     return name

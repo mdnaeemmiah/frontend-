@@ -1,11 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import Image from "next/image";
-import logo from "../../assets/Frame.png";
+
+// Static admin data
+const STATIC_ADMIN = {
+  name: "Admin User",
+  email: "admin@novahealth.com",
+  role: "admin",
+};
 
 export default function AdminLayout({
   children,
@@ -14,57 +19,17 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [admin, setAdmin] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [admin] = useState<any>(STATIC_ADMIN);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  useEffect(() => {
-    const fetchAdminProfile = async () => {
-      try {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-          router.push("/login");
-          return;
-        }
-
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/user/me`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          console.error("Failed to fetch profile:", response.status);
-          router.push("/login");
-          return;
-        }
-
-        const result = await response.json();
-
-        if (result.success && result.data && result.data.role === "admin") {
-          setAdmin(result.data);
-        } else {
-          console.error("User is not an admin or data is missing");
-          router.push("/login");
-        }
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-        router.push("/login");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAdminProfile();
-  }, [router]);
-
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    router.push("/login");
+    // Clear any stored tokens
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+    }
+    // Redirect to home page
+    router.push("/");
   };
 
   const menuItems = [
@@ -100,25 +65,16 @@ export default function AdminLayout({
       path: "/admin/analytics",
     },
     {
-      name: "Settings",
+      name: "Security & Privacy",
+      icon: "⚙️",
+      path: "/admin/Security&Privacy",
+    },
+    {
+      name: "Setting",
       icon: "⚙️",
       path: "/admin/settings",
     },
   ];
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative w-16 h-16 mx-auto mb-4">
-            <div className="absolute inset-0 border-4 border-[#ebe2cd] rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-transparent border-t-[#2952a1] rounded-full animate-spin"></div>
-          </div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">

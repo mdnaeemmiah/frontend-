@@ -1,82 +1,63 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 
+// Static data
+const STATIC_STATS = {
+  totalPatients: 156,
+  totalDoctors: 24,
+  totalAppointments: 342,
+  pendingAppointments: 12,
+};
+
+const STATIC_RECENT_APPOINTMENTS = [
+  {
+    _id: "apt_001",
+    patientName: "John Doe",
+    doctorName: "Dr. Sarah Johnson",
+    appointmentDate: "2026-01-20T10:00:00Z",
+    appointmentTime: "10:00 AM",
+    status: "pending",
+  },
+  {
+    _id: "apt_002",
+    patientName: "Jane Smith",
+    doctorName: "Dr. Michael Chen",
+    appointmentDate: "2026-01-18T14:30:00Z",
+    appointmentTime: "02:30 PM",
+    status: "approved",
+  },
+  {
+    _id: "apt_003",
+    patientName: "Robert Brown",
+    doctorName: "Dr. Emily Thompson",
+    appointmentDate: "2026-01-22T11:00:00Z",
+    appointmentTime: "11:00 AM",
+    status: "approved",
+  },
+  {
+    _id: "apt_004",
+    patientName: "Lisa Anderson",
+    doctorName: "Dr. David Kumar",
+    appointmentDate: "2026-01-16T09:00:00Z",
+    appointmentTime: "09:00 AM",
+    status: "rejected",
+  },
+  {
+    _id: "apt_005",
+    patientName: "Michael Wilson",
+    doctorName: "Dr. Sarah Johnson",
+    appointmentDate: "2026-01-25T15:00:00Z",
+    appointmentTime: "03:00 PM",
+    status: "pending",
+  },
+];
+
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    totalPatients: 0,
-    totalDoctors: 0,
-    totalAppointments: 0,
-    pendingAppointments: 0,
-  });
-  const [loading, setLoading] = useState(true);
-  const [recentAppointments, setRecentAppointments] = useState<any[]>([]);
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        window.location.href = "/login";
-        return;
-      }
-
-      // Fetch stats
-      const [appointmentsRes, doctorsRes, patientsRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/appointment`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/doctor`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/user`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      const appointments = await appointmentsRes.json();
-      const doctors = await doctorsRes.json();
-      const patients = await patientsRes.json();
-
-      if (appointments.success) {
-        const pending = appointments.data.filter(
-          (a: any) => a.status === "pending"
-        );
-        setStats({
-          totalAppointments: appointments.data.length,
-          pendingAppointments: pending.length,
-          totalDoctors: doctors.success ? doctors.data.length : 0,
-          totalPatients: patients.success
-            ? patients.data.filter((u: any) => u.role === "patient").length
-            : 0,
-        });
-        setRecentAppointments(appointments.data.slice(0, 5));
-      }
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="relative w-16 h-16 mx-auto mb-4">
-            <div className="absolute inset-0 border-4 border-[#ebe2cd] rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-transparent border-t-[#2952a1] rounded-full animate-spin"></div>
-          </div>
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
+  const [stats] = useState(STATIC_STATS);
+  const [recentAppointments] = useState(STATIC_RECENT_APPOINTMENTS);
 
   return (
     <div>
@@ -119,7 +100,7 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">📅</span>
+              <span className="text-2xl">�</span>
             </div>
           </div>
           <h3 className="text-3xl font-bold text-gray-900 mb-1">

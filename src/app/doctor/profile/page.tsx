@@ -146,7 +146,7 @@ export default function DoctorProfile() {
     try {
       const token = localStorage.getItem("accessToken");
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || ""}/api/user/me`,
+        `http://localhost:5000/api/user/me`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -223,7 +223,7 @@ export default function DoctorProfile() {
       formData.append("video", videoFile);
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/doctor/my-intro-video`,
+        `http://localhost:5000/api/doctor/my-intro-video`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -313,7 +313,7 @@ export default function DoctorProfile() {
     try {
       const token = localStorage.getItem("accessToken");
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/doctor/my-profile`,
+        `http://localhost:5000/api/doctor/my-profile`,
         {
           method: "PATCH",
           headers: {

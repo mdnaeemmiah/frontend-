@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
+import { getDoctorsFromAssets } from "@/service/matchService";
 
 interface MatchResult {
   doctorId: string;
@@ -18,6 +19,7 @@ interface Doctor {
   name: string;
   specialization: string;
   profileImg?: string;
+  errorImg?: string;
   introVideo?: string;
   bio?: string;
   languages: string[];
@@ -48,97 +50,98 @@ export default function MatchesPage() {
     longitude: number;
   } | null>(null);
 
-  useEffect(() => {
-    // Get user's current location
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.error("Geolocation error:", error);
-          // Continue without location
-          fetchMatches();
-        }
-      );
-    } else {
-      // Continue without location
-      fetchMatches();
-    }
-  }, []);
-
-  useEffect(() => {
-    if (userLocation) {
-      fetchMatches();
-    }
-  }, [userLocation]);
-
   const fetchMatches = async () => {
     try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        router.push("/login");
-        return;
-      }
+      // Get local data from assets
+      const allDoctors = getDoctorsFromAssets();
+      const doctorsMap: { [key: string]: Doctor } = {};
+      const matchResults: MatchResult[] = [];
 
-      // Build query params
-      const params = new URLSearchParams();
-      if (userLocation) {
-        params.append("latitude", userLocation.latitude.toString());
-        params.append("longitude", userLocation.longitude.toString());
-      }
+      // Map doctors and create matches
+      allDoctors.forEach((doctor) => {
+        doctorsMap[doctor._id] = doctor;
 
-      const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"
-        }/api/patient/matches?${params}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        // Calculate distance if user location is available
+        let distance = undefined;
+        if (userLocation) {
+          distance = calculateDistance(
+            userLocation.latitude,
+            userLocation.longitude,
+            20.5937, // Default Dhaka latitude
+            88.9629 // Default Dhaka longitude
+          );
         }
-      );
 
-      const result = await response.json();
-
-      if (result.success) {
-        setMatches(result.data);
-
-        // Fetch doctor details for each match
-        const doctorPromises = result.data.map((match: MatchResult) =>
-          fetch(
-            `${process.env.NEXT_PUBLIC_BASE_API || ""}/api/doctor/${
-              match.doctorId
-            }`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          ).then((res) => res.json())
-        );
-
-        const doctorResults = await Promise.all(doctorPromises);
-        const doctorsMap: { [key: string]: Doctor } = {};
-
-        doctorResults.forEach((res) => {
-          if (res.success) {
-            doctorsMap[res.data._id] = res.data;
-          }
+        matchResults.push({
+          doctorId: doctor._id,
+          matchScore: doctor.rating ? Math.round(doctor.rating * 20) : 85,
+          matchReasons: [
+            `${doctor.experience || 5}+ years of experience`,
+            `Specializes in ${doctor.specialization}`,
+            `Rated ${doctor.rating || 4.5}/5 by patients`,
+            doctor.telehealth
+              ? "Offers virtual consultations"
+              : "In-person consultation available",
+          ],
+          distance: distance,
         });
+      });
 
-        setDoctors(doctorsMap);
-      } else {
-        setError(result.message || "Failed to fetch matches");
-      }
+      setDoctors(doctorsMap);
+      setMatches(matchResults);
+      setLoading(false);
     } catch (error) {
       console.error("Error fetching matches:", error);
       setError("Failed to fetch matches. Please try again.");
-    } finally {
       setLoading(false);
     }
   };
+
+  const calculateDistance = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ): number => {
+    const R = 6371; // Earth's radius in km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  useEffect(() => {
+    const initializeMatches = async () => {
+      // Get user's current location
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setUserLocation({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            });
+            fetchMatches();
+          },
+          (error) => {
+            console.error("Geolocation error:", error);
+            // Continue without location
+            fetchMatches();
+          }
+        );
+      } else {
+        // Continue without location
+        fetchMatches();
+      }
+    };
+
+    initializeMatches();
+  }, []);
 
   const handleSelectDoctor = (doctorId: string) => {
     // Navigate to public doctor profile page
@@ -219,7 +222,7 @@ export default function MatchesPage() {
     <>
       <Navigation />
       <div className="min-h-screen bg-gradient-to-br from-[#ebe2cd] via-white to-[#ebe2cd]/50 py-12 px-4">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="text-center mb-12">
             {/* <button
@@ -252,7 +255,7 @@ export default function MatchesPage() {
           </div>
 
           {/* Matches */}
-          <div className="space-y-8">
+          <div className="space-y-4">
             {matches.map((match) => {
               const doctor = doctors[match.doctorId];
               if (!doctor) return null;
@@ -260,181 +263,120 @@ export default function MatchesPage() {
               return (
                 <div
                   key={doctor._id}
-                  className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 hover:shadow-2xl transition-all duration-300"
+                  className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 p-6"
                 >
-                  <div className="p-8">
-                    {/* Doctor Header */}
-                    <div className="flex items-start justify-between mb-6">
-                      <div className="flex items-center space-x-6">
-                        <div className="w-20 h-20 bg-linear-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center shadow-lg shrink-0">
-                          {doctor.profileImg ? (
-                            <img
-                              src={doctor.profileImg}
-                              alt={doctor.name}
-                              className="w-20 h-20 rounded-2xl object-cover"
-                            />
-                          ) : (
-                            <span className="text-2xl font-bold text-blue-600">
-                              {doctor.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </span>
-                          )}
-                        </div>
+                  <div className="flex items-start gap-4">
+                    {/* Doctor Image - Left Side */}
+                    <div className="w-20 h-20 bg-linear-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center shadow-md overflow-hidden flex-shrink-0">
+                      {doctor.profileImg ? (
+                        <img
+                          src={doctor.profileImg}
+                          alt={doctor.name}
+                          className="w-20 h-20 object-cover"
+                          onError={(e) => {
+                            if (doctor.errorImg) {
+                              e.currentTarget.src = doctor.errorImg;
+                            }
+                          }}
+                        />
+                      ) : doctor.errorImg ? (
+                        <img
+                          src={doctor.errorImg}
+                          alt={doctor.name}
+                          className="w-20 h-20 object-cover"
+                        />
+                      ) : (
+                        <span className="text-2xl font-bold text-blue-600">
+                          {doctor.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Doctor Info - Middle */}
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between mb-2">
                         <div>
-                          <h3 className="text-2xl font-bold text-gray-900">
+                          <h3 className="text-lg font-bold text-gray-900">
                             {doctor.name}
                           </h3>
-                          <p className="text-lg text-gray-600 font-medium">
+                          <p className="text-sm text-blue-600 font-medium">
                             {doctor.specialization}
                           </p>
-                          <div className="flex items-center mt-2 flex-wrap gap-2">
-                            {doctor.rating && (
-                              <div className="flex items-center">
-                                <span className="text-yellow-400">★</span>
-                                <span className="ml-1 text-sm text-gray-600 font-medium">
-                                  {doctor.rating} ({doctor.reviewCount || 0}{" "}
-                                  reviews)
-                                </span>
-                              </div>
-                            )}
-                            {doctor.experience && (
-                              <>
-                                <span className="text-gray-400">•</span>
-                                <span className="text-sm text-gray-600 font-medium">
-                                  {doctor.experience} years exp.
-                                </span>
-                              </>
-                            )}
-                            {match.distance && (
-                              <>
-                                <span className="text-gray-400">•</span>
-                                <span className="text-sm text-[#2952a1] font-medium">
-                                  📍 {match.distance.toFixed(1)} km away
-                                </span>
-                              </>
-                            )}
-                          </div>
+                        </div>
+                        <div className="text-right">
+                          {doctor.rating && (
+                            <div className="flex items-center justify-end gap-1">
+                              <span className="text-yellow-400">★</span>
+                              <span className="font-bold text-gray-900">
+                                {doctor.rating}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                ({doctor.reviewCount || 0} reviews)
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="bg-linear-to-r from-green-500 to-blue-500 text-white px-4 py-2 rounded-xl text-lg font-bold shadow-lg">
-                          {match.matchScore}% Match
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Perfect fit!
-                        </p>
-                      </div>
-                    </div>
 
-                    {/* Bio */}
-                    {doctor.bio && (
-                      <p className="text-gray-700 mb-6 leading-relaxed">
-                        {doctor.bio}
-                      </p>
-                    )}
-
-                    {/* Match Reasons */}
-                    <div className="mb-6">
-                      <h4 className="font-bold text-gray-900 mb-3">
-                        Why this is a great match:
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {match.matchReasons.map((reason, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center text-gray-700 bg-green-50 p-3 rounded-lg"
+                      {/* Vibe Tags */}
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {doctor.vibeTags?.slice(0, 3).map((tag) => (
+                          <span
+                            key={tag}
+                            className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700"
                           >
-                            <span className="text-green-500 mr-3">✓</span>
-                            <span className="text-sm font-medium">
-                              {reason}
-                            </span>
-                          </div>
+                            {tag}
+                          </span>
                         ))}
                       </div>
-                    </div>
 
-                    {/* Tags */}
-                    <div className="flex flex-wrap gap-2 mb-6">
-                      {doctor.telehealth && (
-                        <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
-                          Virtual
-                        </span>
-                      )}
-                      {doctor.inPerson && (
-                        <span className="bg-[#ebe2cd] text-[#2952a1] px-3 py-1 rounded-full text-xs font-medium">
-                          In-Person
-                        </span>
-                      )}
-                      {doctor.languages?.map((lang) => (
-                        <span
-                          key={lang}
-                          className="bg-[#ebe2cd] text-[#2952a1] px-3 py-1 rounded-full text-xs font-medium"
-                        >
-                          🗣️ {lang}
-                        </span>
-                      ))}
-                      {doctor.vibeTags?.slice(0, 3).map((tag) => (
-                        <span
-                          key={tag}
-                          className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-medium"
-                        >
-                          ✨ {tag}
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* Chamber Location */}
-                    {doctor.chamberLocation?.address && (
-                      <div className="mb-6 p-4 bg-gray-50 rounded-xl">
-                        <p className="text-sm font-semibold text-gray-700 mb-1">
-                          📍 Chamber Location:
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {doctor.chamberLocation.address}
-                        </p>
-                        {(doctor.chamberLocation.city ||
-                          doctor.chamberLocation.zipCode) && (
-                          <p className="text-sm text-gray-600">
-                            {doctor.chamberLocation.city}
-                            {doctor.chamberLocation.city &&
-                              doctor.chamberLocation.zipCode &&
-                              ", "}
-                            {doctor.chamberLocation.zipCode}
-                          </p>
+                      {/* Meta Info */}
+                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                        {match.distance && (
+                          <span className="flex items-center gap-1">
+                            📍 {match.distance.toFixed(1)} miles away
+                          </span>
                         )}
-                        {doctor.chamberLocation.googleMapsUrl && (
-                          <a
-                            href={doctor.chamberLocation.googleMapsUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-[#2952a1] hover:text-[#1e3d7a] font-medium mt-1 inline-block"
-                          >
-                            View on Google Maps →
-                          </a>
-                        )}
+                        <span className="flex items-center gap-1">
+                          ⏰ Available today
+                        </span>
                       </div>
-                    )}
 
-                    {/* Actions */}
-                    <div className="flex flex-col sm:flex-row gap-4">
-                      {doctor.introVideo && (
-                        <a
-                          href={doctor.introVideo}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1 bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-all text-center"
+                      {/* Action Buttons */}
+                      <div className="flex gap-3">
+                        {doctor.introVideo && (
+                          <button
+                            onClick={() => {
+                              const modal = document.createElement('div');
+                              modal.className = 'fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4';
+                              modal.innerHTML = `
+                                <div class="max-w-4xl w-full">
+                                  <div class="flex justify-between items-center mb-4">
+                                    <h2 class="text-2xl font-bold text-white">${doctor.name} - Intro Video</h2>
+                                    <button class="text-white hover:text-gray-300 text-3xl" onclick="this.closest('div').remove()">×</button>
+                                  </div>
+                                  <div class="bg-black rounded-2xl overflow-hidden">
+                                    <video src="${doctor.introVideo}" controls autoplay class="w-full max-h-[70vh]"></video>
+                                  </div>
+                                </div>
+                              `;
+                              document.body.appendChild(modal);
+                            }}
+                            className="px-6 py-2 bg-[#2952a1] text-white rounded-lg font-semibold hover:bg-[#1e3d7a] transition-all flex items-center gap-2"
+                          >
+                            ▶ Watch Intro
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleSelectDoctor(doctor._id)}
+                          className="px-6 py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all flex items-center gap-2"
                         >
-                          🎥 Watch Intro Video
-                        </a>
-                      )}
-                      <button
-                        onClick={() => handleSelectDoctor(doctor._id)}
-                        className="flex-1 bg-gradient-to-r from-[#2952a1] to-[#1e3d7a] text-white px-6 py-3 rounded-xl font-semibold hover:from-[#1e3d7a] hover:to-[#2952a1] transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-                      >
-                        View Full Profile
-                      </button>
+                          � View Profile
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

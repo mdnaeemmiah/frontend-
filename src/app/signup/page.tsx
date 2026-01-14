@@ -55,38 +55,15 @@ export default function SignupPage() {
     setError("");
 
     try {
-      // Call your signup API
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/auth/register`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: data.name,
-            email: data.email,
-            password: data.password,
-            role: data.role,
-          }),
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Registration failed");
-      }
+      // Static signup - simulate successful registration
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API delay
 
       // Store email for verification page
       localStorage.setItem("verificationEmail", data.email);
 
       setSuccess(true);
 
-      // Redirect to verification page after 2 seconds
-      setTimeout(() => {
-        window.location.href = "/verify-email";
-      }, 2000);
+      // Show success message (no redirect)
     } catch (err: any) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
@@ -141,7 +118,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center p-4 py-12">
+    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-y-auto">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -153,31 +130,31 @@ export default function SignupPage() {
         />
       </div>
 
-      <div className="relative z-10 w-full max-w-2xl">
+      <div className="relative z-10 w-full max-w-2xl my-8">
         {/* Logo/Brand */}
-        <div className="text-center mb-8">
+        {/* <div className="text-center mb-6">
           <Link href="/" className="inline-flex items-center space-x-3 group">
             <Image
               src={logo}
               alt="NovaHealth Logo"
-              width={48}
-              height={48}
+              width={40}
+              height={40}
               className="group-hover:scale-105 transition-transform duration-200"
             />
-            <span className="text-3xl font-bold bg-gradient-to-r from-[#2952a1] to-[#1e3d7a] bg-clip-text text-transparent">
+            <span className="text-2xl font-bold bg-gradient-to-r from-[#2952a1] to-[#1e3d7a] bg-clip-text text-transparent">
               NovaHealth
             </span>
           </Link>
-          <p className="mt-3 text-gray-700 text-lg font-medium">
+          <p className="mt-2 text-gray-700 text-base font-medium">
             Create your account
           </p>
-        </div>
+        </div> */}
 
         {/* Signup Card */}
-        <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-gray-100">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Sign Up</h1>
-            <p className="text-gray-600">
+        <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-6 border border-gray-100">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">Sign Up</h1>
+            <p className="text-gray-600 text-sm">
               Join NovaHealth and find your perfect doctor
             </p>
           </div>
@@ -190,7 +167,7 @@ export default function SignupPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Role Selection */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">

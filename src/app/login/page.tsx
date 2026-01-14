@@ -35,60 +35,15 @@ export default function LoginPage() {
     setError("");
 
     try {
-      // Call your login API
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || ""}/api/auth/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }
-      );
+      // Static login - simulate successful login
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API delay
 
-      const result = await response.json();
+      // Store fake token in localStorage
+      localStorage.setItem("accessToken", "fake-access-token-12345");
+      localStorage.setItem("refreshToken", "fake-refresh-token-67890");
 
-      if (!response.ok) {
-        // Check if error is about email verification
-        if (
-          result.message?.includes("Verify your email") ||
-          result.message?.includes("verify")
-        ) {
-          setError(
-            <span>
-              Please verify your email first.{" "}
-              <a href="/verify-email" className="underline font-semibold">
-                Click here to verify
-              </a>
-            </span>
-          );
-        } else {
-          throw new Error(result.message || "Login failed");
-        }
-        return;
-      }
-
-      // Store tokens in localStorage
-      if (result.data?.accessToken) {
-        localStorage.setItem("accessToken", result.data.accessToken);
-      }
-      if (result.data?.refreshToken) {
-        localStorage.setItem("refreshToken", result.data.refreshToken);
-      }
-
-      // Get user role from response
-      const userRole = result.data?.user?.role || result.data?.role;
-
-      // Redirect based on role
-      if (userRole === "doctor") {
-        window.location.href = "/doctor/dashboard";
-      } else if (userRole === "admin") {
-        window.location.href = "/admin/dashboard";
-      } else {
-        // Patient/User
-        window.location.href = "/onboarding";
-      }
+      // Redirect to onboarding (patient flow)
+      window.location.href = "/onboarding";
     } catch (err: any) {
       setError(err.message || "Invalid email or password. Please try again.");
     } finally {

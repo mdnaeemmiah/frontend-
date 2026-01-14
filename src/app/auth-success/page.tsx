@@ -20,8 +20,8 @@ function AuthSuccessContent() {
         router.push("/dashboard");
       }, 1000);
     } else {
-      // If no tokens, redirect to login
-      router.push("/login");
+      // If no tokens, redirect to home
+      router.push("/");
     }
   }, [searchParams, router]);
 

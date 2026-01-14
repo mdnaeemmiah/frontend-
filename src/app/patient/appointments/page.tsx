@@ -9,6 +9,7 @@ import Footer from "../../../components/Footer";
 interface Appointment {
   _id: string;
   doctorName: string;
+  doctorImage?: string;
   appointmentDate: string;
   appointmentTime: string;
   appointmentType: "in-person" | "virtual";
@@ -18,47 +19,75 @@ interface Appointment {
   createdAt: string;
 }
 
+// Static appointments data
+const STATIC_APPOINTMENTS: Appointment[] = [
+  {
+    _id: "apt_001",
+    doctorName: "Dr. Sarah Johnson",
+    doctorImage: "https://i.pravatar.cc/150?img=1",
+    appointmentDate: "2026-01-20",
+    appointmentTime: "10:00 AM",
+    appointmentType: "in-person",
+    reason: "Regular checkup and blood pressure monitoring",
+    status: "approved",
+    adminNotes: "Appointment confirmed. Please arrive 10 minutes early.",
+    createdAt: "2026-01-10T08:30:00Z",
+  },
+  {
+    _id: "apt_002",
+    doctorName: "Dr. Michael Chen",
+    doctorImage: "https://i.pravatar.cc/150?img=2",
+    appointmentDate: "2026-01-18",
+    appointmentTime: "02:30 PM",
+    appointmentType: "virtual",
+    reason: "Follow-up consultation for knee pain",
+    status: "pending",
+    createdAt: "2026-01-14T14:20:00Z",
+  },
+  {
+    _id: "apt_003",
+    doctorName: "Dr. Emily Thompson",
+    doctorImage: "https://i.pravatar.cc/150?img=3",
+    appointmentDate: "2026-01-22",
+    appointmentTime: "11:00 AM",
+    appointmentType: "in-person",
+    reason: "Annual physical examination",
+    status: "approved",
+    adminNotes: "Please bring your previous medical records.",
+    createdAt: "2026-01-12T10:15:00Z",
+  },
+  {
+    _id: "apt_004",
+    doctorName: "Dr. David Kumar",
+    doctorImage: "https://i.pravatar.cc/150?img=4",
+    appointmentDate: "2026-01-16",
+    appointmentTime: "09:00 AM",
+    appointmentType: "virtual",
+    reason: "Consultation for recurring headaches",
+    status: "rejected",
+    adminNotes: "Doctor not available on this date. Please reschedule.",
+    createdAt: "2026-01-13T16:45:00Z",
+  },
+  {
+    _id: "apt_005",
+    doctorName: "Dr. Sarah Johnson",
+    doctorImage: "https://i.pravatar.cc/150?img=1",
+    appointmentDate: "2026-01-25",
+    appointmentTime: "03:00 PM",
+    appointmentType: "in-person",
+    reason: "Cardiology consultation for chest discomfort",
+    status: "pending",
+    createdAt: "2026-01-15T09:00:00Z",
+  },
+];
+
 export default function PatientAppointmentsPage() {
   const router = useRouter();
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<
-    "all" | "pending" | "approved" | "rejected"
-  >("all");
-
-  useEffect(() => {
-    fetchAppointments();
-  }, []);
-
-  const fetchAppointments = async () => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-
-      const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"
-        }/api/appointment/my-appointments`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const result = await response.json();
-      if (result.success) {
-        setAppointments(result.data);
-      }
-    } catch (error) {
-      console.error("Error fetching appointments:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [appointments] = useState<Appointment[]>(STATIC_APPOINTMENTS);
+  const [loading] = useState(false);
+  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">(
+    "all"
+  );
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -99,15 +128,12 @@ export default function PatientAppointmentsPage() {
     return apt.status === filter;
   });
 
-  const pendingCount = appointments.filter(
-    (apt) => apt.status === "pending"
-  ).length;
-  const approvedCount = appointments.filter(
-    (apt) => apt.status === "approved"
-  ).length;
-  const rejectedCount = appointments.filter(
-    (apt) => apt.status === "rejected"
-  ).length;
+  const pendingCount = appointments.filter((apt) => apt.status === "pending")
+    .length;
+  const approvedCount = appointments.filter((apt) => apt.status === "approved")
+    .length;
+  const rejectedCount = appointments.filter((apt) => apt.status === "rejected")
+    .length;
 
   if (loading) {
     return (
@@ -126,27 +152,20 @@ export default function PatientAppointmentsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-[#ebe2cd] via-white to-[#ebe2cd]/50">
       <Navigation />
 
-      {/* Header */}
-      {/* <header className="bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => router.push('/')}
-                className="text-[#2952a1] hover:text-[#1e3d7a] font-medium"
-              >
-                ← Back to Home
-              </button>
-              <h1 className="text-2xl font-bold text-gray-900">My Appointments</h1>
-            </div>
-          </div>
-        </div>
-      </header> */}
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            My Appointments
+          </h1>
+          <p className="text-gray-600">
+            View and manage your upcoming appointments
+          </p>
+        </div>
+
         {/* Filter Tabs */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4 mb-6">
           <div className="flex gap-3 overflow-x-auto">
@@ -219,7 +238,18 @@ export default function PatientAppointmentsPage() {
                 key={appointment._id}
                 className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all"
               >
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start space-x-4 mb-4">
+                  {/* Doctor Profile Image */}
+                  {appointment.doctorImage && (
+                    <div className="flex-shrink-0">
+                      <img
+                        src={appointment.doctorImage}
+                        alt={appointment.doctorName}
+                        className="w-20 h-20 rounded-full object-cover border-2 border-[#2952a1]/20"
+                      />
+                    </div>
+                  )}
+                  
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
                       <h3 className="text-xl font-bold text-gray-900">
@@ -237,7 +267,7 @@ export default function PatientAppointmentsPage() {
                     </div>
                     <div className="flex items-center space-x-4 text-sm text-gray-600">
                       <span className="flex items-center">
-                        📅{" "}
+                        �{" "}
                         {new Date(
                           appointment.appointmentDate
                         ).toLocaleDateString("en-US", {

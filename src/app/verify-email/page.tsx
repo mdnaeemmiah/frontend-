@@ -48,7 +48,7 @@ export default function VerifyEmailPage() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"}/api/auth/verify-email`,
+        `http://localhost:5000/api/auth/verify-email`,
         {
           method: "POST",
           headers: {
@@ -69,10 +69,7 @@ export default function VerifyEmailPage() {
 
       setSuccess(true);
 
-      // Redirect to login after 2 seconds
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 2000);
+      // Show success message (no redirect)
     } catch (err: any) {
       setError(err.message || "Invalid verification code. Please try again.");
     } finally {
@@ -92,9 +89,7 @@ export default function VerifyEmailPage() {
 
     try {
       const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BASE_API || "https://practice-backend-oauth-image-video.vercel.app"
-        }/api/auth/resend-verification`,
+        `http://localhost:5000/api/auth/resend-verification`,
         {
           method: "POST",
           headers: {
