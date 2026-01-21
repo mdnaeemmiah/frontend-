@@ -4,11 +4,13 @@ import { useState } from "react";
 import Navigation from "../components/Navigation";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { FaCheckCircle } from "react-icons/fa";
 import doctorHeroImage from "../assets/div.png";
 import doctor1 from "../assets/close-up-portrait-happy-male-doctor.jpg";
 import doctor2 from "../assets/young-woman-doctor-white-coat-with-stethoscope-making-welcoming-gesture-spreading-arms-smiling-standing-orange-wall.jpg";
 import doctor3 from "../assets/young-handsome-physician-medical-robe-with-stethoscope.jpg";
 import doctor4 from "../assets/cinematic-portrait-woman-working-healthcare-system-having-care-job.jpg";
+import hero from "../assets/hero.jpg";
 
 export default function Home() {
   const router = useRouter();
@@ -67,6 +69,7 @@ export default function Home() {
 
   const doctors = [
     {
+      id: "doc_001",
       name: "Dr. Sarah Johnson",
       specialty: "Cardiologist",
       rating: 4.9,
@@ -74,6 +77,7 @@ export default function Home() {
       image: doctor1,
     },
     {
+      id: "doc_002",
       name: "Dr. Michael Chen",
       specialty: "Pediatrician",
       rating: 4.8,
@@ -81,6 +85,7 @@ export default function Home() {
       image: doctor2,
     },
     {
+      id: "doc_003",
       name: "Dr. Emily Rodriguez",
       specialty: "Dermatologist",
       rating: 5.0,
@@ -88,6 +93,7 @@ export default function Home() {
       image: doctor3,
     },
     {
+      id: "doc_004",
       name: "Dr. James Wilson",
       specialty: "Orthopedic",
       rating: 4.9,
@@ -169,8 +175,20 @@ export default function Home() {
       <Navigation />
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-[#ebe2cd] via-white to-[#ebe2cd]/50 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <section className="relative overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src={hero}
+            alt="Healthcare Background"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-white/80"></div>
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="space-y-8">
@@ -188,7 +206,7 @@ export default function Home() {
                 </span>
               </h1>
 
-              <p className="text-xl text-gray-600 leading-relaxed">
+              <p className="text-xl text-white leading-relaxed">
                 Connect with healthcare providers who truly understand you. Get
                 personalized doctor recommendations based on your needs,
                 preferences, and communication style.
@@ -197,13 +215,16 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={() => router.push("/onboarding")}
-                  className="px-8 py-4 bg-gradient-to-r from-[#2952a1] to-[#1e3d7a] text-white rounded-xl font-semibold hover:from-[#1e3d7a] hover:to-[#2952a1] transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="px-8 py-4 bg-gradient-to-r text-xl text-black hover:text-white rounded-xl font-semibold hover:from-[#1e3d7a] hover:to-[#2952a1] transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border-[#2952a1] border-2 cursor-pointer"
                 >
                   Get Started
                 </button>
                 <button
-                  onClick={() => router.push("/search-doctors")}
-                  className="px-8 py-4 bg-white text-gray-700 border-2 border-gray-200 rounded-xl font-semibold hover:border-[#2952a1] hover:bg-[#ebe2cd]/20 transition-all"
+                  onClick={() => {
+                    const faqSection = document.getElementById("faq-section");
+                    faqSection?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="px-8 py-4 bg-gradient-to-r text-xl  text-black hover:text-white rounded-xl font-semibold hover:from-[#1e3d7a] hover:to-[#2952a1] transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border-[#2952a1] border-2 cursor-pointer"
                 >
                   Learn More
                 </button>
@@ -211,14 +232,14 @@ export default function Home() {
 
               <div className="flex items-center gap-8 pt-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-green-500 text-2xl">✓</span>
-                  <span className="text-gray-600 font-medium">
+                  <FaCheckCircle className="text-green-500 text-2xl" />
+                  <span className="text-black font-medium">
                     HIPAA Compliant
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-green-500 text-2xl">✓</span>
-                  <span className="text-gray-600 font-medium">
+                  <FaCheckCircle className="text-green-500 text-2xl" />
+                  <span className="text-black  font-medium">
                     Secure & Private
                   </span>
                 </div>
@@ -347,7 +368,7 @@ export default function Home() {
                     </div>
                   </div>
                   <button
-                    onClick={() => router.push("/search-doctors")}
+                    onClick={() => router.push(`/doctors/${doctor.id}`)}
                     className="w-full cursor-pointer px-4 py-3 bg-[#2952a1] text-white rounded-xl font-semibold hover:bg-[#1e3d7a] transition-colors"
                   >
                     View Profile
@@ -369,50 +390,49 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section */}
-<section className="py-20 bg-gray-50">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div className="text-center mb-16">
-      <h2 className="text-4xl font-bold text-gray-900 mb-4">
-        What Our Patients Say
-      </h2>
-      <p className="text-xl text-gray-600">
-        Real stories from our satisfied patients
-      </p>
-    </div>
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              What Our Patients Say
+            </h2>
+            <p className="text-xl text-gray-600">
+              Real stories from our satisfied patients
+            </p>
+          </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-      {testimonials.map((testimonial, index) => (
-        <div
-          key={index}
-          className="bg-white rounded-2xl p-8 shadow-2xl hover:shadow-2xl transition-all duration-300 border border-gray-200 hover:border-[#2952a1] hover:-translate-y-2 cursor-pointer hover:scale-105"
-        >
-          <div className="flex gap-1 mb-4">
-            {[...Array(testimonial.rating)].map((_, i) => (
-              <span key={i} className="text-yellow-400 text-xl">
-                ⭐
-              </span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-2xl p-8 shadow-2xl hover:shadow-2xl transition-all duration-300 border border-gray-200 hover:border-[#2952a1] hover:-translate-y-2 cursor-pointer hover:scale-105"
+              >
+                <div className="flex gap-1 mb-4">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <span key={i} className="text-yellow-400 text-xl">
+                      ⭐
+                    </span>
+                  ))}
+                </div>
+                <p className="text-gray-700 leading-relaxed mb-6 italic">
+                  "{testimonial.text}"
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#2952a1] to-[#1e3d7a] rounded-full flex items-center justify-center text-white font-bold hover:scale-110 transition-transform duration-300">
+                    {testimonial.author.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">
+                      {testimonial.author}
+                    </p>
+                    <p className="text-sm text-gray-600">{testimonial.role}</p>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
-          <p className="text-gray-700 leading-relaxed mb-6 italic">
-            "{testimonial.text}"
-          </p>
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-[#2952a1] to-[#1e3d7a] rounded-full flex items-center justify-center text-white font-bold hover:scale-110 transition-transform duration-300">
-              {testimonial.author.charAt(0)}
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900">
-                {testimonial.author}
-              </p>
-              <p className="text-sm text-gray-600">{testimonial.role}</p>
-            </div>
-          </div>
         </div>
-      ))}
-    </div>
-  </div>
-</section>
-
+      </section>
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-[#2952a1] to-[#1e3d7a]">
@@ -463,7 +483,7 @@ export default function Home() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-white">
+      <section id="faq-section" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
