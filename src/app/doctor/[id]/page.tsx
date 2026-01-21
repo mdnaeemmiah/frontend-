@@ -840,7 +840,14 @@ export default function DoctorProfilePage() {
 
       {/* Video Modal */}
       {showVideoModal && doctor.introVideo && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+        <div 
+          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowVideoModal(false);
+            }
+          }}
+        >
           <div className="max-w-4xl w-full">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-white">
@@ -848,21 +855,28 @@ export default function DoctorProfilePage() {
               </h2>
               <button
                 onClick={() => setShowVideoModal(false)}
-                className="text-white hover:text-gray-300 text-3xl"
+                className="text-white hover:text-gray-300 text-4xl font-bold w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/10 transition-all"
               >
                 ×
               </button>
             </div>
-            <div className="bg-black rounded-2xl overflow-hidden">
+            <div className="bg-black rounded-2xl overflow-hidden shadow-2xl">
               <video
                 src={doctor.introVideo}
                 controls
                 autoPlay
                 className="w-full max-h-[70vh]"
+                onError={(e) => {
+                  console.error("Video failed to load:", doctor.introVideo);
+                  alert("Failed to load video. Please check the video URL.");
+                }}
               >
                 Your browser does not support the video tag.
               </video>
             </div>
+            <p className="text-white text-sm mt-2 text-center">
+              Click outside the video or press × to close
+            </p>
           </div>
         </div>
       )}

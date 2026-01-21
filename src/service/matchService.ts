@@ -8,6 +8,9 @@ import div2 from "@/assets/div (2).png";
 import div3 from "@/assets/div (3).png";
 import div4 from "@/assets/div (4).png";
 
+// Use a sample video URL that works for all doctors
+const sampleVideoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+
 export interface Doctor {
   _id: string;
   name: string;
@@ -41,7 +44,7 @@ const mockDoctors: Doctor[] = [
     specialization: "Cardiologist",
     profileImg: img1.src,
     errorImg: div1.src,
-    introVideo: "/assets/1777892-hd_1280_720_25fps.mp4",
+    introVideo: sampleVideoUrl,
     bio: "Experienced cardiologist with 12+ years of practice. Specializes in preventive cardiology and patient education. Compassionate and thorough in patient care.",
     languages: ["English", "Spanish"],
     vibeTags: ["Compassionate", "Friendly", "Thorough"],
@@ -65,7 +68,7 @@ const mockDoctors: Doctor[] = [
     specialization: "Orthopedic Surgeon",
     profileImg: img2.src,
     errorImg: div2.src,
-    introVideo: "/assets/1779202-hd_1280_720_25fps.mp4",
+    introVideo: sampleVideoUrl,
     bio: "Specialized in orthopedic surgery with focus on joint replacement and sports medicine. Known for innovative surgical techniques and excellent patient outcomes.",
     languages: ["English", "Mandarin", "Bengali"],
     vibeTags: ["Innovative", "Patient", "Skilled"],
@@ -89,7 +92,7 @@ const mockDoctors: Doctor[] = [
     specialization: "Family Medicine",
     profileImg: img3.src,
     errorImg: div3.src,
-    introVideo: "/assets/2063228-uhd_3840_2160_24fps.mp4",
+    introVideo: sampleVideoUrl,
     bio: "Dedicated family medicine physician with 8 years of experience. Provides comprehensive healthcare for all age groups. Believes in preventive care and holistic wellness.",
     languages: ["English", "French"],
     vibeTags: ["Caring", "Holistic", "Approachable"],
@@ -113,7 +116,7 @@ const mockDoctors: Doctor[] = [
     specialization: "Neurologist",
     profileImg: img4.src,
     errorImg: div4.src,
-    introVideo: "/assets/3018542-hd_1920_1080_24fps.mp4",
+    introVideo: sampleVideoUrl,
     bio: "Expert neurologist specializing in migraine management, epilepsy, and neurological disorders. Uses latest diagnostic technology and evidence-based treatments.",
     languages: ["English", "Hindi", "Bengali"],
     vibeTags: ["Expert", "Empathetic", "Modern"],
