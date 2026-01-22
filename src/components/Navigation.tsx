@@ -95,21 +95,21 @@ export default function Navigation() {
           <div className="hidden md:flex items-center space-x-8">
             <Link
               href="/onboarding"
-              className="relative text-gray-600 hover:text-[#2952a1] px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 group"
+              className="relative text-gray-600 hover:text-[#2952a1] px-4 py-2 rounded-lg text-md font-semibold transition-all duration-200 group"
             >
               <span className="relative z-10">Find Doctors</span>
               <div className="absolute inset-0 bg-[#ebe2cd]/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
             </Link>
             <Link
               href="/matches"
-              className="relative text-gray-600 hover:text-[#2952a1] px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 group"
+              className="relative text-gray-600 hover:text-[#2952a1] px-4 py-2 rounded-lg text-md font-semibold transition-all duration-200 group"
             >
               <span className="relative z-10">My Matches</span>
               <div className="absolute inset-0 bg-[#ebe2cd]/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
             </Link>
             <Link
               href="/search-doctors"
-              className="relative text-gray-600 hover:text-[#2952a1] px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 group"
+              className="relative text-gray-600 hover:text-[#2952a1] px-4 py-2 rounded-lg text-md font-semibold transition-all duration-200 group"
             >
               <span className="relative z-10">All Doctors</span>
               <div className="absolute inset-0 bg-[#ebe2cd]/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>

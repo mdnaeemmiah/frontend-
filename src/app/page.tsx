@@ -11,6 +11,7 @@ import doctor2 from "../assets/young-woman-doctor-white-coat-with-stethoscope-ma
 import doctor3 from "../assets/young-handsome-physician-medical-robe-with-stethoscope.jpg";
 import doctor4 from "../assets/cinematic-portrait-woman-working-healthcare-system-having-care-job.jpg";
 import hero from "../assets/hero.jpg";
+import Link from "next/link";
 
 export default function Home() {
   const router = useRouter();
@@ -248,14 +249,14 @@ export default function Home() {
 
             {/* Right Image */}
             <div className="relative">
-              <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden">
+              <div className="relative bg-white rounded-3xl shadow-2xl">
                 <Image
                   src={doctorHeroImage}
                   alt="Healthcare Professional"
                   className="w-full h-auto"
                   priority
                 />
-                <div className="absolute bottom-6 left-6 bg-white rounded-2xl p-4 shadow-xl">
+                <div className="absolute bottom-6 left-6 bg-white rounded-2xl p-4 shadow-xl hover:scale-105">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                       <span className="text-green-600 text-xl">✓</span>
@@ -675,28 +676,28 @@ export default function Home() {
                   </a>
                 </li>
                 <li>
-                  <a
+                  <Link
                     href="/doctor/dashboard"
                     className="hover:text-white transition-colors hover:translate-x-1 inline-block"
                   >
                     Pricing
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     href="/doctor/profile"
                     className="hover:text-white transition-colors hover:translate-x-1 inline-block"
                   >
                     Success Stories
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     href="/doctor/appointments"
                     className="hover:text-white transition-colors hover:translate-x-1 inline-block"
                   >
                     Resources
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
