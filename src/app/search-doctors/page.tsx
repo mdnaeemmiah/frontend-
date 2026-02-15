@@ -2,10 +2,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { getDoctorsFromAssets } from "@/service/matchService";
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
+import img1 from "../../assets/img (1).png";
+import img2 from "../../assets/img (2).png";
+import img3 from "../../assets/img (3).png";
+import img4 from "../../assets/img (4).png";
 
 // Extended fake doctors data
 const EXTENDED_DOCTORS = [
@@ -13,8 +18,7 @@ const EXTENDED_DOCTORS = [
     _id: "doc_005",
     name: "Dr. Sarah Mitchell",
     specialization: "Mental Health Care",
-    profileImg: "https://i.pravatar.cc/150?img=1",
-    errorImg: "/assets/div.png",
+    profileImg: img1,
     bio: "Psychiatrist specializing in anxiety and depression treatment.",
     languages: ["English", "Spanish"],
     vibeTags: ["Compassionate", "Supportive", "Patient"],
@@ -36,8 +40,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_006",
     name: "Dr. James Anderson",
     specialization: "Mental Health Care",
-    profileImg: "https://i.pravatar.cc/150?img=2",
-    errorImg: "/assets/div (2).png",
+    profileImg: img2,
+   
     bio: "Clinical psychologist with expertise in cognitive behavioral therapy.",
     languages: ["English"],
     vibeTags: ["Expert", "Analytical", "Thorough"],
@@ -59,8 +63,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_007",
     name: "Dr. Emily Roberts",
     specialization: "Mental Health Care",
-    profileImg: "https://i.pravatar.cc/150?img=3",
-    errorImg: "/assets/div (3).png",
+    profileImg: img3,
+   
     bio: "Licensed therapist specializing in family and couples counseling.",
     languages: ["English", "French"],
     vibeTags: ["Empathetic", "Caring", "Supportive"],
@@ -82,8 +86,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_008",
     name: "Dr. Lisa Chen",
     specialization: "Acupuncture",
-    profileImg: "https://i.pravatar.cc/150?img=4",
-    errorImg: "/assets/div (4).png",
+    profileImg: img4,
+   
     bio: "Licensed acupuncturist with 20 years of traditional medicine experience.",
     languages: ["English", "Mandarin"],
     vibeTags: ["Holistic", "Experienced", "Gentle"],
@@ -105,8 +109,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_009",
     name: "Dr. Michael Zhang",
     specialization: "Acupuncture",
-    profileImg: "https://i.pravatar.cc/150?img=5",
-    errorImg: "/assets/div.png",
+    profileImg: img1,
+    
     bio: "Traditional Chinese medicine practitioner specializing in pain management.",
     languages: ["English", "Mandarin", "Cantonese"],
     vibeTags: ["Traditional", "Skilled", "Holistic"],
@@ -128,8 +132,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_010",
     name: "Dr. Rachel Kim",
     specialization: "Acupuncture",
-    profileImg: "https://i.pravatar.cc/150?img=6",
-    errorImg: "/assets/div (2).png",
+    profileImg: img2,
+   
     bio: "Holistic acupuncturist focusing on wellness and preventive care.",
     languages: ["English", "Korean"],
     vibeTags: ["Holistic", "Preventive", "Caring"],
@@ -151,8 +155,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_011",
     name: "Dr. David Thompson",
     specialization: "Dental Care",
-    profileImg: "https://i.pravatar.cc/150?img=7",
-    errorImg: "/assets/div (3).png",
+    profileImg: img3,
+   
     bio: "General dentist with expertise in cosmetic and restorative dentistry.",
     languages: ["English"],
     vibeTags: ["Skilled", "Friendly", "Professional"],
@@ -174,8 +178,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_012",
     name: "Dr. Jennifer Lee",
     specialization: "Dental Care",
-    profileImg: "https://i.pravatar.cc/150?img=8",
-    errorImg: "/assets/div (4).png",
+    profileImg: img4,
+   
     bio: "Orthodontist specializing in braces and clear aligners.",
     languages: ["English", "Vietnamese"],
     vibeTags: ["Precise", "Modern", "Patient-focused"],
@@ -197,8 +201,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_013",
     name: "Dr. Marcus Johnson",
     specialization: "Mental Health Care",
-    profileImg: "https://i.pravatar.cc/150?img=9",
-    errorImg: "/assets/div.png",
+    profileImg: img1,
+    
     bio: "Behavioral health specialist with focus on addiction recovery.",
     languages: ["English"],
     vibeTags: ["Supportive", "Dedicated", "Compassionate"],
@@ -220,8 +224,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_014",
     name: "Dr. Patricia Wong",
     specialization: "Mental Health Care",
-    profileImg: "https://i.pravatar.cc/150?img=10",
-    errorImg: "/assets/div (2).png",
+    profileImg: img2,
+   
     bio: "Child and adolescent psychiatrist with specialized trauma training.",
     languages: ["English", "Mandarin"],
     vibeTags: ["Caring", "Specialized", "Patient"],
@@ -243,8 +247,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_015",
     name: "Dr. Thomas Brown",
     specialization: "Acupuncture",
-    profileImg: "https://i.pravatar.cc/150?img=11",
-    errorImg: "/assets/div (3).png",
+    profileImg: img3,
+   
     bio: "Sports acupuncturist specializing in athletic injury recovery.",
     languages: ["English"],
     vibeTags: ["Athletic", "Skilled", "Effective"],
@@ -266,8 +270,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_016",
     name: "Dr. Angela Martinez",
     specialization: "Acupuncture",
-    profileImg: "https://i.pravatar.cc/150?img=12",
-    errorImg: "/assets/div (4).png",
+    profileImg: img4,
+   
     bio: "Fertility acupuncturist helping couples with conception.",
     languages: ["English", "Spanish"],
     vibeTags: ["Specialized", "Compassionate", "Holistic"],
@@ -289,8 +293,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_017",
     name: "Dr. Robert Garcia",
     specialization: "Dental Care",
-    profileImg: "https://i.pravatar.cc/150?img=13",
-    errorImg: "/assets/div.png",
+    profileImg: img1,
+    
     bio: "Periodontist specializing in gum disease and implants.",
     languages: ["English", "Spanish"],
     vibeTags: ["Expert", "Thorough", "Professional"],
@@ -312,8 +316,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_019",
     name: "Dr. William Martinez",
     specialization: "Cardiologist",
-    profileImg: "https://i.pravatar.cc/150?img=15",
-    errorImg: "/assets/div (3).png",
+    profileImg: img2,
+   
     bio: "Interventional cardiologist specializing in heart disease treatment and prevention.",
     languages: ["English", "Spanish"],
     vibeTags: ["Expert", "Compassionate", "Thorough"],
@@ -335,8 +339,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_020",
     name: "Dr. Victoria Anderson",
     specialization: "Cardiologist",
-    profileImg: "https://i.pravatar.cc/150?img=16",
-    errorImg: "/assets/div (4).png",
+    profileImg: img3,
+   
     bio: "Women's heart health specialist with focus on cardiovascular disease in women.",
     languages: ["English"],
     vibeTags: ["Specialized", "Caring", "Knowledgeable"],
@@ -358,8 +362,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_021",
     name: "Dr. James Wilson",
     specialization: "Orthopedic Surgeon",
-    profileImg: "https://i.pravatar.cc/150?img=17",
-    errorImg: "/assets/div.png",
+    profileImg: img4,
+    
     bio: "Sports medicine orthopedic surgeon specializing in knee and shoulder injuries.",
     languages: ["English"],
     vibeTags: ["Athletic", "Skilled", "Innovative"],
@@ -381,8 +385,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_022",
     name: "Dr. Amanda Rodriguez",
     specialization: "Orthopedic Surgeon",
-    profileImg: "https://i.pravatar.cc/150?img=18",
-    errorImg: "/assets/div (2).png",
+    profileImg: img1,
+   
     bio: "Pediatric orthopedic surgeon treating children's bone and joint conditions.",
     languages: ["English", "Spanish"],
     vibeTags: ["Gentle", "Expert", "Patient"],
@@ -404,8 +408,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_023",
     name: "Dr. Robert Taylor",
     specialization: "Family Medicine",
-    profileImg: "https://i.pravatar.cc/150?img=19",
-    errorImg: "/assets/div (3).png",
+    profileImg: img2,
+   
     bio: "Family physician providing comprehensive care for all ages.",
     languages: ["English"],
     vibeTags: ["Caring", "Thorough", "Approachable"],
@@ -427,8 +431,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_024",
     name: "Dr. Maria Santos",
     specialization: "Family Medicine",
-    profileImg: "https://i.pravatar.cc/150?img=20",
-    errorImg: "/assets/div (4).png",
+    profileImg: img3,
+   
     bio: "Bilingual family doctor specializing in preventive care and chronic disease management.",
     languages: ["English", "Spanish"],
     vibeTags: ["Bilingual", "Preventive", "Holistic"],
@@ -450,8 +454,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_025",
     name: "Dr. Christopher Lee",
     specialization: "Neurologist",
-    profileImg: "https://i.pravatar.cc/150?img=21",
-    errorImg: "/assets/div.png",
+    profileImg: img4,
+    
     bio: "Movement disorder specialist focusing on Parkinson's disease and tremors.",
     languages: ["English", "Korean"],
     vibeTags: ["Specialized", "Expert", "Compassionate"],
@@ -473,8 +477,8 @@ const EXTENDED_DOCTORS = [
     _id: "doc_026",
     name: "Dr. Sophia Patel",
     specialization: "Neurologist",
-    profileImg: "https://i.pravatar.cc/150?img=22",
-    errorImg: "/assets/div (2).png",
+    profileImg: img1,
+   
     bio: "Headache and migraine specialist with advanced pain management techniques.",
     languages: ["English", "Hindi"],
     vibeTags: ["Empathetic", "Skilled", "Modern"],
@@ -553,7 +557,7 @@ export default function SearchDoctors() {
     return (
       <>
         <Navigation />
-        <div className="min-h-screen bg-gradient-to-br from-[#ebe2cd] via-white to-[#ebe2cd]/50 flex items-center justify-center">
+        <div className="min-h-screen bg-[#2952a1] flex items-center justify-center">
           <div className="relative w-16 h-16">
             <div className="absolute inset-0 border-4 border-[#ebe2cd] rounded-full"></div>
             <div className="absolute inset-0 border-4 border-transparent border-t-[#2952a1] rounded-full animate-spin"></div>
@@ -567,9 +571,9 @@ export default function SearchDoctors() {
   return (
     <>
       <Navigation />
-      <div className="min-h-screen bg-gradient-to-br from-[#ebe2cd] via-white to-[#ebe2cd]/50">
+      <div className="min-h-screen bg-[#2952a1]">
         {/* Header Section */}
-        <div className="bg-linear-to-r from-[#2952a1] to-[#1e3d7a] text-white py-12 px-4">
+        <div className="bg-linear-to-r bg-[#2952a1] text-white py-12 px-4">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-4xl font-bold mb-3">
               Find the Right Doctor for Your Needs
@@ -598,7 +602,7 @@ export default function SearchDoctors() {
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Filters Info */}
-          <div className="flex items-center gap-4 mb-8 text-sm text-gray-600">
+          <div className="flex items-center gap-4 mb-8 text-sm text-gray-600 bg-white p-2 rounded-xl">
             <button className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-200 hover:border-gray-300">
               ☰ Filters
             </button>
@@ -622,14 +626,14 @@ export default function SearchDoctors() {
               <div key={specialization}>
                 {/* Specialization Header */}
                 <div className="flex items-center gap-3 mb-6">
-                  <span className="text-3xl">
+                  <span className="text-3xl bg-white/80 rounded-xl p-3">
                     {getSpecializationIcon(specialization)}
                   </span>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">
+                    <h2 className="text-2xl font-bold text-white">
                       {specialization}
                     </h2>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-100">
                       {specialization === "Cardiologist" &&
                         "Heart and cardiovascular specialists"}
                       {specialization === "Orthopedic Surgeon" &&
@@ -651,32 +655,13 @@ export default function SearchDoctors() {
                     >
                       {/* Doctor Image and Name - Left Aligned */}
                       <div className="flex items-start gap-4 mb-4">
-                        <div className="w-20 h-20 rounded-full bg-linear-to-br from-blue-100 to-purple-100 flex items-center justify-center overflow-hidden shadow-md border-2 border-white flex-shrink-0">
-                          {doctor.profileImg ? (
-                            <img
-                              src={doctor.profileImg}
-                              alt={doctor.name}
-                              className="w-20 h-20 object-cover rounded-full"
-                              onError={(e) => {
-                                if (doctor.errorImg) {
-                                  e.currentTarget.src = doctor.errorImg;
-                                }
-                              }}
-                            />
-                          ) : doctor.errorImg ? (
-                            <img
-                              src={doctor.errorImg}
-                              alt={doctor.name}
-                              className="w-20 h-20 object-cover rounded-full"
-                            />
-                          ) : (
-                            <span className="text-2xl font-bold text-blue-600">
-                              {doctor.name
-                                .split(" ")
-                                .map((n: string) => n[0])
-                                .join("")}
-                            </span>
-                          )}
+                        <div className="w-20 h-20 rounded-full bg-linear-to-br from-blue-100 to-purple-100 flex items-center justify-center overflow-hidden shadow-md border-2 border-white flex-shrink-0 relative">
+                          <Image
+                            src={doctor.profileImg || img1}
+                            alt={doctor.name}
+                            fill
+                            className="object-cover rounded-full"
+                          />
                         </div>
 
                         <div className="flex-1">

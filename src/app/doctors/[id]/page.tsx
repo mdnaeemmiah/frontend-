@@ -4,9 +4,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import Image from "next/image";
+import { FaCalendarAlt, FaMapMarkerAlt, FaGlobe, FaShieldAlt, FaChevronDown, FaChevronUp, FaStar } from "react-icons/fa";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { getDoctorById } from "@/service/matchService";
+import img1 from "@/assets/img (1).png";
 
 export default function PublicDoctorProfilePage() {
   const router = useRouter();
@@ -16,13 +19,8 @@ export default function PublicDoctorProfilePage() {
   const [doctor, setDoctor] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showMessageModal, setShowMessageModal] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
-
-  const [messageForm, setMessageForm] = useState({
-    subject: "",
-    message: "",
-  });
+  const [openSection, setOpenSection] = useState<string | null>("about");
 
   const [appointmentForm, setAppointmentForm] = useState({
     appointmentDate: "",
@@ -31,6 +29,10 @@ export default function PublicDoctorProfilePage() {
     patientPhone: "",
     appointmentType: "in-person" as "in-person" | "virtual",
   });
+
+  const toggleSection = (section: string) => {
+    setOpenSection(openSection === section ? null : section);
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
@@ -92,14 +94,14 @@ export default function PublicDoctorProfilePage() {
     return (
       <>
         <Navigation />
-        <div className="min-h-screen bg-gradient-to-br from-[#ebe2cd] via-white to-[#ebe2cd]/50 flex items-center justify-center">
+        <div className="min-h-screen bg-[#2952a1] flex items-center justify-center">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl font-bold text-white mb-4">
               Doctor not found
             </h2>
             <button
               onClick={() => router.push("/matches")}
-              className="text-[#2952a1] hover:text-[#1e3d7a] font-medium"
+              className="text-white hover:text-[#1e3d7a] font-medium"
             >
               ← Back to Matches
             </button>
@@ -113,405 +115,259 @@ export default function PublicDoctorProfilePage() {
   return (
     <>
       <Navigation />
-      <div className="min-h-screen bg-gradient-to-br from-[#ebe2cd] via-white to-[#ebe2cd]/50 py-12 px-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-[#2952a1] py-12 px-4">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Back Button */}
           <button
             onClick={() => router.back()}
-            className="text-[#2952a1] hover:text-[#1e3d7a] font-medium mb-6 inline-flex items-center"
+            className="text-white cursor-pointer font-medium inline-flex items-center hover:opacity-80 transition-all"
           >
             ← Back
           </button>
 
-          <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-            {/* Header Section */}
-            <section className="bg-linear-to-r from-[#2952a1] to-[#1e3d7a] p-8 text-white">
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-                {/* Doctor Image */}
-                <div className="w-32 h-32 bg-white rounded-2xl flex items-center justify-center text-4xl font-bold text-blue-600 shadow-lg overflow-hidden flex-shrink-0">
-                  {doctor.profileImg ? (
-                    <img
-                      src={doctor.profileImg}
-                      alt={doctor.name}
-                      className="w-32 h-32 rounded-2xl object-cover"
-                      onError={(e) => {
-                        if (doctor.errorImg) {
-                          e.currentTarget.src = doctor.errorImg;
-                        }
-                      }}
-                    />
-                  ) : doctor.errorImg ? (
-                    <img
-                      src={doctor.errorImg}
-                      alt={doctor.name}
-                      className="w-32 h-32 rounded-2xl object-cover"
-                    />
-                  ) : (
-                    doctor.name
-                      .split(" ")
-                      .map((n: string) => n[0])
-                      .join("")
-                  )}
-                </div>
+          {/* Header Card */}
+          <div className="bg-white rounded-[32px] p-6 md:p-8 shadow-xl flex flex-col md:flex-row items-center md:items-start gap-8">
+            <div className="relative w-48 h-48 md:w-40 md:h-40 rounded-2xl overflow-hidden flex-shrink-0 bg-blue-50">
+              <Image
+                src={doctor.profileImg || img1}
+                alt={doctor.name}
+                fill
+                className="object-cover"
+              />
+            </div>
 
-                {/* Doctor Info */}
-                <div className="flex-1">
-                  <h1 className="text-4xl font-bold mb-2">{doctor.name}</h1>
-                  <p className="text-xl text-white/80 mb-3">
-                    {doctor.specialization}
-                  </p>
-
-                  {/* Rating */}
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-yellow-300 text-lg">★</span>
-                    <span className="text-lg font-semibold">
-                      {doctor.rating || 4.5}
-                    </span>
-                    <span className="text-white/70">
-                      ({doctor.reviewCount || 0} reviews)
-                    </span>
-                  </div>
-
-                  {/* Choose Button */}
-                  <button
-                    onClick={() => {
-                      if (!isLoggedIn) {
-                        router.push(`/login?returnUrl=/doctors/${doctorId}`);
-                      }
-                    }}
-                    className="bg-white text-[#2952a1] px-8 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-all shadow-lg"
-                  >
-                    Choose This Doctor
-                  </button>
-                </div>
+            <div className="flex-1 text-center md:text-left space-y-4">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold text-gray-900">{doctor.name}</h1>
+                <p className="text-lg text-gray-500 font-medium">
+                  {doctor.specialization} & Internal Medicine
+                </p>
               </div>
-            </section>
 
-            {/* Main Content */}
-            <div className="p-8 space-y-8">
-              {/* About Section */}
-              {doctor.bio && (
-                <section>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                    About {doctor.name.split(" ")[1]}
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed text-lg">
-                    {doctor.bio}
-                  </p>
-                </section>
-              )}
-
-              {/* Credentials & Education */}
-              <section>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  Credentials & Education
-                </h3>
-                <ul className="space-y-3">
-                  <li className="flex items-start gap-3">
-                    <span className="text-[#2952a1] text-xl mt-1">🎓</span>
-                    <div>
-                      <strong className="text-gray-900">
-                        {doctor.specialization} Degree
-                      </strong>
-                      <p className="text-gray-600">
-                        Medical School - {doctor.experience || 10}+ years of
-                        experience
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-[#2952a1] text-xl mt-1">🏥</span>
-                    <div>
-                      <strong className="text-gray-900">
-                        {doctor.specialization} Fellowship
-                      </strong>
-                      <p className="text-gray-600">
-                        Specialized training in {doctor.specialization}
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-[#2952a1] text-xl mt-1">✓</span>
-                    <div>
-                      <strong className="text-gray-900">
-                        Board Certifications
-                      </strong>
-                      <p className="text-gray-600">
-                        American Board of {doctor.specialization}
-                      </p>
-                    </div>
-                  </li>
-                </ul>
-              </section>
-
-              {/* Specialties & Services */}
-              <section>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  Specialties & Services
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {doctor.vibeTags?.map((tag: string) => (
-                    <div
-                      key={tag}
-                      className="flex items-center gap-3 p-4 bg-[#ebe2cd]/30 rounded-xl border border-[#2952a1]/20"
-                    >
-                      <span className="text-2xl">✨</span>
-                      <span className="font-semibold text-gray-900">
-                        {tag}
-                      </span>
-                    </div>
+              <div className="flex items-center justify-center md:justify-start gap-1">
+                <div className="flex text-yellow-400">
+                  {[...Array(5)].map((_, i) => (
+                    <FaStar key={i} />
                   ))}
                 </div>
-              </section>
+                <span className="text-gray-900 font-bold ml-2">{doctor.rating || 4.9}</span>
+                <span className="text-gray-400 text-sm ml-1">({doctor.reviewCount || 247} reviews)</span>
+              </div>
 
-              {/* Languages */}
-              {doctor.languages && doctor.languages.length > 0 && (
-                <section>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                    Languages
-                  </h3>
-                  <div className="flex flex-wrap gap-3">
-                    {doctor.languages.map((lang: string) => (
-                      <span
-                        key={lang}
-                        className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full font-medium"
-                      >
-                        🌐 {lang}
-                      </span>
-                    ))}
-                  </div>
-                </section>
-              )}
+              <button
+                onClick={() => {
+                  if (!isLoggedIn) {
+                    router.push(`/login?returnUrl=/doctors/${doctorId}`);
+                  } else {
+                    setShowAppointmentModal(true);
+                  }
+                }}
+                className="bg-[#0052CC] text-white px-10 py-3.5 rounded-xl font-bold text-lg hover:bg-[#0747A6] transition-all shadow-md active:scale-95 cursor-pointer"
+              >
+                Book Appointment
+              </button>
+            </div>
+          </div>
 
-              {/* Consultation Options */}
-              <section>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  Consultation Options
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {doctor.inPerson && (
-                    <div className="p-4 bg-purple-50 border-2 border-purple-200 rounded-xl">
-                      <p className="text-2xl mb-2">🏥</p>
-                      <p className="font-semibold text-gray-900">
-                        In-Person Visit
-                      </p>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Visit at chamber location
-                      </p>
-                    </div>
-                  )}
-                  {doctor.telehealth && (
-                    <div className="p-4 bg-green-50 border-2 border-green-200 rounded-xl">
-                      <p className="text-2xl mb-2">💻</p>
-                      <p className="font-semibold text-gray-900">
-                        Virtual Consultation
-                      </p>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Online video call from home
-                      </p>
-                    </div>
-                  )}
+          {/* Quick Facts Card */}
+          <div className="bg-white rounded-[32px] p-8 shadow-xl">
+            <h2 className="text-2xl font-bold text-gray-900 mb-8">Quick Facts</h2>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+              <div className="flex flex-col items-center text-center space-y-3">
+                <div className="w-14 h-14 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center text-2xl">
+                  <FaCalendarAlt />
                 </div>
-              </section>
-
-              {/* Chamber Location */}
-              {doctor.chamberLocation?.address && (
-                <section>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                    Chamber Location
-                  </h3>
-                  <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                    <div className="flex items-start gap-4">
-                      <span className="text-3xl">📍</span>
-                      <div>
-                        <p className="font-semibold text-gray-900 mb-2">
-                          {doctor.chamberLocation.address}
-                        </p>
-                        <p className="text-gray-600 mb-3">
-                          {doctor.chamberLocation.city}
-                          {doctor.chamberLocation.city &&
-                            doctor.chamberLocation.zipCode &&
-                            ", "}
-                          {doctor.chamberLocation.zipCode}
-                        </p>
-                        {doctor.chamberLocation.googleMapsUrl && (
-                          <a
-                            href={doctor.chamberLocation.googleMapsUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block text-[#2952a1] hover:text-[#1e3d7a] font-semibold"
-                          >
-                            View on Google Maps →
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              )}
-
-              {/* Consultation Fee */}
-              <section>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  Consultation Fee
-                </h3>
-                <div className="bg-linear-to-r from-[#2952a1]/10 to-[#1e3d7a]/10 rounded-2xl p-6 border-2 border-[#2952a1]/20">
-                  <p className="text-5xl font-bold text-[#2952a1]">
-                    ${doctor.consultationFee || "TBD"}
-                  </p>
-                  <p className="text-gray-600 mt-2">Per consultation</p>
+                <div>
+                  <p className="font-bold text-gray-900">Availability</p>
+                  <p className="text-sm text-gray-500">Available Today</p>
                 </div>
-              </section>
+              </div>
 
-              {/* Patient Reviews */}
-              <section>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  Patient Reviews
-                </h3>
-                <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <p className="font-semibold text-gray-900">
-                          Michael Chen
-                        </p>
-                        <p className="text-sm text-gray-500">3 days ago</p>
-                      </div>
-                      <span className="text-yellow-400">★★★★★</span>
-                    </div>
-                    <p className="text-gray-700">
-                      {doctor.name} is excellent! She took the time to explain
-                      my condition thoroughly and answered all my questions with
-                      patience and expertise.
-                    </p>
-                  </div>
-
-                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <p className="font-semibold text-gray-900">
-                          Lisa Rodriguez
-                        </p>
-                        <p className="text-sm text-gray-500">1 week ago</p>
-                      </div>
-                      <span className="text-yellow-400">★★★★★</span>
-                    </div>
-                    <p className="text-gray-700">
-                      {doctor.name}'s preventive approach helped me avoid major
-                      complications. She's knowledgeable, professional, and
-                      genuinely cares for her patients.
-                    </p>
-                  </div>
+              <div className="flex flex-col items-center text-center space-y-3">
+                <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl">
+                  <FaMapMarkerAlt />
                 </div>
-              </section>
+                <div>
+                  <p className="font-bold text-gray-900">Location</p>
+                  <p className="text-sm text-gray-500">{doctor.city || "Downtown Medical"}</p>
+                </div>
+              </div>
 
-              {/* Availability */}
-              <section>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  Availability
-                </h3>
-                <div className="bg-green-50 rounded-2xl p-6 border-2 border-green-200">
-                  <button className="px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-all">
-                    ✓ Available Today
-                  </button>
-                  <p className="text-gray-600 mt-3">
-                    Click to book an appointment or send a message
+              <div className="flex flex-col items-center text-center space-y-3">
+                <div className="w-14 h-14 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-2xl">
+                  <FaGlobe />
+                </div>
+                <div>
+                  <p className="font-bold text-gray-900">Languages</p>
+                  <p className="text-sm text-gray-500">
+                    {doctor.languages?.join(", ") || "English, Spanish"}
                   </p>
                 </div>
-              </section>
+              </div>
 
-              {/* Action Buttons */}
-              <section className="flex gap-4 pt-4">
-                <button
-                  onClick={() => {
-                    if (!isLoggedIn) {
-                      router.push(`/login?returnUrl=/doctors/${doctorId}`);
-                    } else {
-                      setShowAppointmentModal(true);
-                    }
-                  }}
-                  className="flex-1 bg-[#2952a1] text-white py-4 rounded-xl font-semibold hover:bg-[#1e3d7a] transition-all shadow-lg"
-                >
-                  📅 Book Appointment
-                </button>
-                <button
-                  onClick={() => {
-                    if (!isLoggedIn) {
-                      router.push(`/login?returnUrl=/doctors/${doctorId}`);
-                    } else {
-                      setShowMessageModal(true);
-                    }
-                  }}
-                  className="flex-1 bg-gray-100 text-gray-700 py-4 rounded-xl font-semibold hover:bg-gray-200 transition-all"
-                >
-                  ✉️ Send Message
-                </button>
-              </section>
+              <div className="flex flex-col items-center text-center space-y-3">
+                <div className="w-14 h-14 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center text-2xl">
+                  <FaShieldAlt />
+                </div>
+                <div>
+                  <p className="font-bold text-gray-900">Insurance</p>
+                  <p className="text-sm text-gray-500">Most Plans</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Doctor Information Card */}
+          <div className="bg-white rounded-[32px] p-8 shadow-xl space-y-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Doctor Information</h2>
+
+            {/* About Section */}
+            <div className="border border-gray-100 rounded-2xl overflow-hidden">
+              <button
+                onClick={() => toggleSection("about")}
+                className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-gray-50 transition-all cursor-pointer"
+              >
+                <span className="text-lg font-bold text-gray-900">About {doctor.name}</span>
+                {openSection === "about" ? <FaChevronUp className="text-gray-400" /> : <FaChevronDown className="text-gray-400" />}
+              </button>
+              {openSection === "about" && (
+                <div className="px-6 py-4 text-gray-600 leading-relaxed bg-gray-50/50">
+                  <p>{doctor.bio || "Dr. Mitchell is a board-certified cardiologist with over 15 years of clinical experience in diagnosing and treating cardiovascular conditions. She specializes in preventive cardiology and patient-centered care, focusing on early detection and long-term heart health management."}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Education Section */}
+            <div className="border border-gray-100 rounded-2xl overflow-hidden">
+              <button
+                onClick={() => toggleSection("education")}
+                className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-gray-50 transition-all cursor-pointer"
+              >
+                <span className="text-lg font-bold text-gray-900">Education & Certifications</span>
+                {openSection === "education" ? <FaChevronUp className="text-gray-400" /> : <FaChevronDown className="text-gray-400" />}
+              </button>
+              {openSection === "education" && (
+                <div className="px-6 py-4 bg-gray-50/50">
+                  <ul className="space-y-2 text-gray-600">
+                    <li>• Doctor of Medicine (MD), Harvard Medical School</li>
+                    <li>• Residency in Internal Medicine, Johns Hopkins Hospital</li>
+                    <li>• Fellowship in Cardiovascular Disease, Mayo Clinic</li>
+                    <li>• Board Certified in Cardiology</li>
+                    <li>• Board Certified in Internal Medicine</li>
+                    <li>• Advanced Cardiac Life Support (ACLS) Certified</li>
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Services Section */}
+            <div className="border border-gray-100 rounded-2xl overflow-hidden">
+              <button
+                onClick={() => toggleSection("services")}
+                className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-gray-50 transition-all cursor-pointer"
+              >
+                <span className="text-lg font-bold text-gray-900">Services Offered</span>
+                {openSection === "services" ? <FaChevronUp className="text-gray-400" /> : <FaChevronDown className="text-gray-400" />}
+              </button>
+              {openSection === "services" && (
+                <div className="px-6 py-4 bg-gray-50/50">
+                  <ul className="space-y-2 text-gray-600">
+                    <li>• Comprehensive cardiac evaluations</li>
+                    <li>• Preventive cardiology & risk assessment</li>
+                    <li>• Hypertension management</li>
+                    <li>• Cholesterol management</li>
+                    <li>• Stress testing (Exercise & Pharmacologic)</li>
+                    <li>• Echocardiography</li>
+                    <li>• Electrocardiogram (ECG/EKG)</li>
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Patient Reviews Card */}
+          <div className="bg-white rounded-[32px] p-8 shadow-xl">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold text-gray-900">Patient Reviews</h2>
+              <button className="text-blue-600 font-bold hover:underline">View All Reviews</button>
+            </div>
+
+            <div className="flex flex-col lg:flex-row gap-12 mb-12">
+              {/* Overall Rating */}
+              <div className="text-center lg:text-left space-y-2">
+                <div className="text-6xl font-black text-gray-900">{doctor.rating || 4.9}</div>
+                <div className="flex text-yellow-400 text-2xl justify-center lg:justify-start">
+                  {[...Array(5)].map((_, i) => <FaStar key={i} />)}
+                </div>
+                <div className="text-gray-500 font-medium">{doctor.reviewCount || 247} Reviews</div>
+              </div>
+
+              {/* Progress Bars */}
+              <div className="flex-1 space-y-3">
+                {[5, 4, 3, 2, 1].map((star) => (
+                  <div key={star} className="flex items-center gap-4">
+                    <span className="text-sm font-bold text-gray-600 w-4">{star}★</span>
+                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-yellow-400 rounded-full"
+                        style={{ width: star === 5 ? '85%' : star === 4 ? '12%' : star === 3 ? '2%' : '1%' }}
+                      />
+                    </div>
+                    <span className="text-sm text-gray-400 w-10 text-right">
+                      {star === 5 ? 210 : star === 4 ? 29 : star === 3 ? 5 : star === 2 ? 2 : 1}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Individual Reviews */}
+            <div className="space-y-6">
+              <div className="border border-gray-100 rounded-[24px] p-6 hover:shadow-md transition-all">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 overflow-hidden relative">
+                    <Image src={img1} alt="Patient" fill className="object-cover" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-gray-900">Emily R.</span>
+                      <div className="flex text-yellow-400 text-xs">
+                        {[...Array(5)].map((_, i) => <FaStar key={i} />)}
+                      </div>
+                    </div>
+                    <span className="text-xs text-gray-400">2 days ago</span>
+                  </div>
+                </div>
+                <p className="text-gray-600 leading-relaxed">
+                  Dr. Mitchell is exceptional! She took the time to explain my condition thoroughly and made me feel comfortable throughout the entire process. Highly recommend.
+                </p>
+              </div>
+
+              <div className="border border-gray-100 rounded-[24px] p-6 hover:shadow-md transition-all">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 overflow-hidden relative">
+                    <Image src={img1} alt="Patient" fill className="object-cover" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-gray-900">Michael T.</span>
+                      <div className="flex text-yellow-400 text-xs">
+                        {[...Array(5)].map((_, i) => <FaStar key={i} />)}
+                      </div>
+                    </div>
+                    <span className="text-xs text-gray-400">1 week ago</span>
+                  </div>
+                </div>
+                <p className="text-gray-600 leading-relaxed">
+                  Outstanding care and expertise. Dr. Mitchell's preventive approach has really helped improve my heart health. The staff is also very professional.
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Message Modal */}
-      {showMessageModal && isLoggedIn && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Send Message to {doctor.name}
-            </h2>
-            <form onSubmit={handleSendMessage} className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  value={messageForm.subject}
-                  onChange={(e) =>
-                    setMessageForm({
-                      ...messageForm,
-                      subject: e.target.value,
-                    })
-                  }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#2952a1] focus:border-transparent"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Message
-                </label>
-                <textarea
-                  value={messageForm.message}
-                  onChange={(e) =>
-                    setMessageForm({
-                      ...messageForm,
-                      message: e.target.value,
-                    })
-                  }
-                  rows={5}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#2952a1] focus:border-transparent"
-                  required
-                />
-              </div>
-              <div className="flex gap-3">
-                <button
-                  type="submit"
-                  className="flex-1 bg-[#2952a1] text-white py-3 rounded-xl font-semibold hover:bg-[#1e3d7a] transition-all"
-                >
-                  Send Message
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowMessageModal(false)}
-                  className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+
 
       {/* Appointment Modal */}
       {showAppointmentModal && isLoggedIn && (
@@ -758,3 +614,11 @@ export default function PublicDoctorProfilePage() {
     </>
   );
 }
+function setShowMessageModal(arg0: boolean) {
+  throw new Error("Function not implemented.");
+}
+
+function setMessageForm(arg0: { subject: string; message: string; }) {
+  throw new Error("Function not implemented.");
+}
+

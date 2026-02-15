@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
 import { getDoctorsFromAssets } from "@/service/matchService";
@@ -150,7 +151,7 @@ export default function MatchesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#ebe2cd] via-white to-[#ebe2cd]/50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#2952a1] flex items-center justify-center">
         <div className="text-center">
           <div className="relative w-16 h-16 mx-auto mb-6">
             <div className="absolute inset-0 border-4 border-[#ebe2cd] rounded-full"></div>
@@ -167,7 +168,7 @@ export default function MatchesPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#2952a1] flex items-center justify-center px-4">
         <div className="bg-white rounded-3xl shadow-xl p-8 max-w-md text-center">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-3xl">⚠️</span>
@@ -187,7 +188,7 @@ export default function MatchesPage() {
 
   if (matches.length === 0) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#2952a1] flex items-center justify-center px-4">
         <div className="bg-white rounded-3xl shadow-xl p-8 max-w-md text-center">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-3xl">🔍</span>
@@ -221,7 +222,7 @@ export default function MatchesPage() {
   return (
     <>
       <Navigation />
-      <div className="min-h-screen bg-gradient-to-br from-[#ebe2cd] via-white to-[#ebe2cd]/50 py-12 px-4">
+      <div className="min-h-screen bg-[#2952a1] py-12 px-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="text-center mb-12">
@@ -231,24 +232,24 @@ export default function MatchesPage() {
           >
             ← Back to Home
           </button> */}
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl font-bold text-white mb-4">
               Your Doctor Matches
             </h1>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-gray-200">
               We found{" "}
-              <span className="text-[#2952a1] font-semibold">
+              <span className="text-green-500 font-semibold">
                 {matches.length} doctor{matches.length !== 1 ? "s" : ""}
               </span>{" "}
               that perfectly match your preferences
             </p>
             {userLocation && (
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-gray-100 mt-2">
                 📍 Showing results near your location
               </p>
             )}
             <button
               onClick={() => router.push("/onboarding")}
-              className="mt-4 text-[#2952a1] hover:text-[#1e3d7a] font-medium text-sm inline-flex items-center"
+              className="mt-4 text-white cursor-pointer font-medium text-sm inline-flex items-center"
             >
               ⚙️ Update Preferences
             </button>
@@ -267,29 +268,19 @@ export default function MatchesPage() {
                 >
                   <div className="flex items-start gap-4">
                     {/* Doctor Image - Left Side */}
-                    <div className="w-20 h-20 bg-linear-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center shadow-md overflow-hidden flex-shrink-0">
+                    <div className="w-20 h-20 bg-linear-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center shadow-md overflow-hidden flex-shrink-0 relative">
                       {doctor.profileImg ? (
-                        <img
+                        <Image
                           src={doctor.profileImg}
                           alt={doctor.name}
-                          className="w-20 h-20 object-cover"
-                          onError={(e) => {
-                            if (doctor.errorImg) {
-                              e.currentTarget.src = doctor.errorImg;
-                            }
-                          }}
-                        />
-                      ) : doctor.errorImg ? (
-                        <img
-                          src={doctor.errorImg}
-                          alt={doctor.name}
-                          className="w-20 h-20 object-cover"
+                          fill
+                          className="object-cover"
                         />
                       ) : (
                         <span className="text-2xl font-bold text-blue-600">
                           {doctor.name
                             .split(" ")
-                            .map((n) => n[0])
+                            .map((n: string) => n[0])
                             .join("")}
                         </span>
                       )}

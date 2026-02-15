@@ -370,8 +370,8 @@ export default function DoctorProfile() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">My Profile</h1>
-        <p className="text-gray-600">Update your professional information</p>
+        <h1 className="text-3xl font-bold text-white mb-2">My Profile</h1>
+        <p className="text-gray-100">Update your professional information</p>
       </div>
 
       {/* Profile Update Status Banner */}

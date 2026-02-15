@@ -5,11 +5,16 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Navigation from "../../../components/Navigation";
 import Footer from "../../../components/Footer";
+import Image from "next/image";
+import img1 from "../../../assets/img (1).png";
+import img2 from "../../../assets/img (2).png";
+import img3 from "../../../assets/img (3).png";
+import img4 from "../../../assets/img (4).png";
 
 interface Appointment {
   _id: string;
   doctorName: string;
-  doctorImage?: string;
+  doctorImage?: any;
   appointmentDate: string;
   appointmentTime: string;
   appointmentType: "in-person" | "virtual";
@@ -24,7 +29,7 @@ const STATIC_APPOINTMENTS: Appointment[] = [
   {
     _id: "apt_001",
     doctorName: "Dr. Sarah Johnson",
-    doctorImage: "https://i.pravatar.cc/150?img=1",
+    doctorImage: img1,
     appointmentDate: "2026-01-20",
     appointmentTime: "10:00 AM",
     appointmentType: "in-person",
@@ -36,7 +41,7 @@ const STATIC_APPOINTMENTS: Appointment[] = [
   {
     _id: "apt_002",
     doctorName: "Dr. Michael Chen",
-    doctorImage: "https://i.pravatar.cc/150?img=2",
+    doctorImage: img2,
     appointmentDate: "2026-01-18",
     appointmentTime: "02:30 PM",
     appointmentType: "virtual",
@@ -47,7 +52,7 @@ const STATIC_APPOINTMENTS: Appointment[] = [
   {
     _id: "apt_003",
     doctorName: "Dr. Emily Thompson",
-    doctorImage: "https://i.pravatar.cc/150?img=3",
+    doctorImage: img3,
     appointmentDate: "2026-01-22",
     appointmentTime: "11:00 AM",
     appointmentType: "in-person",
@@ -59,7 +64,7 @@ const STATIC_APPOINTMENTS: Appointment[] = [
   {
     _id: "apt_004",
     doctorName: "Dr. David Kumar",
-    doctorImage: "https://i.pravatar.cc/150?img=4",
+    doctorImage: img4,
     appointmentDate: "2026-01-16",
     appointmentTime: "09:00 AM",
     appointmentType: "virtual",
@@ -71,7 +76,7 @@ const STATIC_APPOINTMENTS: Appointment[] = [
   {
     _id: "apt_005",
     doctorName: "Dr. Sarah Johnson",
-    doctorImage: "https://i.pravatar.cc/150?img=1",
+    doctorImage: img1,
     appointmentDate: "2026-01-25",
     appointmentTime: "03:00 PM",
     appointmentType: "in-person",
@@ -152,16 +157,16 @@ export default function PatientAppointmentsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#ebe2cd] via-white to-[#ebe2cd]/50">
+    <div className="min-h-screen bg-[#2952a1]">
       <Navigation />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-gray-100 mb-2">
             My Appointments
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-200">
             View and manage your upcoming appointments
           </p>
         </div>
@@ -241,11 +246,12 @@ export default function PatientAppointmentsPage() {
                 <div className="flex items-start space-x-4 mb-4">
                   {/* Doctor Profile Image */}
                   {appointment.doctorImage && (
-                    <div className="flex-shrink-0">
-                      <img
+                    <div className="flex-shrink-0 relative w-20 h-20">
+                      <Image
                         src={appointment.doctorImage}
                         alt={appointment.doctorName}
-                        className="w-20 h-20 rounded-full object-cover border-2 border-[#2952a1]/20"
+                        fill
+                        className="rounded-full object-cover border-2 border-[#2952a1]/20"
                       />
                     </div>
                   )}

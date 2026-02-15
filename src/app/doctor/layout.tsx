@@ -50,11 +50,6 @@ export default function DoctorLayout({
       path: "/doctor/profile",
     },
     {
-      name: "Messages",
-      icon: "💬",
-      path: "/doctor/messages",
-    },
-    {
       name: "Settings",
       icon: "⚙️",
       path: "/doctor/settings",
@@ -159,7 +154,7 @@ export default function DoctorLayout({
 
       {/* Main Content */}
       <main
-        className={`transition-all duration-300 ${
+        className={`transition-all duration-300 bg-[#2952a1] ${
           sidebarOpen ? "ml-64" : "ml-20"
         }`}
       >

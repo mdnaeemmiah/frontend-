@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import Navigation from "../components/Navigation";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { FaCheckCircle } from "react-icons/fa";
-import doctorHeroImage from "../assets/div.png";
+import { FaCheckCircle, FaShieldAlt, FaCalendarAlt, FaArrowRight, FaCheck, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import doctorHeroImage from "../assets/image/Gemini_Generated_Image_iimfv8iimfv8iimf-removebg-preview 1.svg";
 import doctor1 from "../assets/close-up-portrait-happy-male-doctor.jpg";
 import doctor2 from "../assets/young-woman-doctor-white-coat-with-stethoscope-making-welcoming-gesture-spreading-arms-smiling-standing-orange-wall.jpg";
 import doctor3 from "../assets/young-handsome-physician-medical-robe-with-stethoscope.jpg";
@@ -13,6 +13,14 @@ import doctor4 from "../assets/cinematic-portrait-woman-working-healthcare-syste
 import logo from "../assets/logo.png";
 import hero from "../assets/hero.jpg";
 import Link from "next/link";
+import img1 from "../assets/image/div.svg";
+import img2 from "../assets/image/image 1.svg";
+import img3 from "../assets/image/image 3.svg";
+import img4 from "../assets/image/image 4.svg";
+import img5 from "../assets/image/image 5.svg";
+import img6 from "../assets/image/image 6.svg";
+import imgFooter1 from "../assets/image/Vector.svg";
+import imgFooter2 from "../assets/image/attachment__2_-removebg-preview 1.svg";
 
 function Loading() {
   return (
@@ -42,6 +50,15 @@ export default function Home() {
   const router = useRouter();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [showLoading, setShowLoading] = useState(true);
+  const [currentTestimonial, setCurrentTestimonial] = useState(1);
+
+  const nextTestimonial = () => {
+    setCurrentTestimonial((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
+  };
+
+  const prevTestimonial = () => {
+    setCurrentTestimonial((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1));
+  };
 
   useEffect(() => {
     const t = setTimeout(() => setShowLoading(false), 3000);
@@ -52,7 +69,7 @@ export default function Home() {
 
   const services = [
     {
-      icon: "🎥",
+      icon: img2,
       title: "Virtual Consultation",
       description:
         "Connect with doctors from the comfort of your home through secure video calls.",
@@ -60,7 +77,7 @@ export default function Home() {
       bgColor: "bg-blue-50",
     },
     {
-      icon: "📅",
+      icon: img1,
       title: "Easy Scheduling",
       description:
         "Book appointments instantly with real-time availability and automated reminders.",
@@ -68,7 +85,7 @@ export default function Home() {
       bgColor: "bg-purple-50",
     },
     {
-      icon: "📋",
+      icon: img3,
       title: "Health Records",
       description:
         "Access your complete medical history and test results anytime, anywhere.",
@@ -76,7 +93,7 @@ export default function Home() {
       bgColor: "bg-green-50",
     },
     {
-      icon: "💊",
+      icon: img4,
       title: "Prescription Management",
       description:
         "Get digital prescriptions and track your medications with ease.",
@@ -84,7 +101,7 @@ export default function Home() {
       bgColor: "bg-blue-50",
     },
     {
-      icon: "📊",
+      icon: img5,
       title: "Result Monitoring",
       description:
         "Track your health metrics and receive insights from your healthcare team.",
@@ -92,7 +109,7 @@ export default function Home() {
       bgColor: "bg-purple-50",
     },
     {
-      icon: "💬",
+      icon: img6,
       title: "Secure Messaging",
       description:
         "Communicate directly with your doctor through our encrypted messaging system.",
@@ -104,32 +121,32 @@ export default function Home() {
   const doctors = [
     {
       id: "doc_001",
-      name: "Dr. Sarah Johnson",
-      specialty: "Cardiologist",
+      name: "Dr. Sarah Mitchell",
+      specialty: "Family Medicine",
       rating: 4.9,
-      reviews: 127,
+      reviews: 248,
       image: doctor1,
     },
     {
       id: "doc_002",
-      name: "Dr. Michael Chen",
-      specialty: "Pediatrician",
+      name: "Dr. James Chen",
+      specialty: "Cardiology",
       rating: 4.8,
-      reviews: 203,
+      reviews: 312,
       image: doctor2,
     },
     {
       id: "doc_003",
       name: "Dr. Emily Rodriguez",
-      specialty: "Dermatologist",
+      specialty: "Pediatrics",
       rating: 5.0,
-      reviews: 156,
+      reviews: 427,
       image: doctor3,
     },
     {
       id: "doc_004",
-      name: "Dr. James Wilson",
-      specialty: "Orthopedic",
+      name: "Dr. Michael Turner",
+      specialty: "Dermatology",
       rating: 4.9,
       reviews: 189,
       image: doctor4,
@@ -138,22 +155,46 @@ export default function Home() {
 
   const testimonials = [
     {
-      text: "NovaHealth made it so easy to find the right doctor for me. The video introductions helped me feel comfortable before my first appointment.",
-      author: "Jessica Thompson",
-      role: "Patient",
+      text: "The care I received was exceptional. The staff was professional, caring, and made me feel comfortable throughout my treatment. I couldn't be happier with the results.",
+      author: "Sarah Chen",
+      role: "Teacher",
       rating: 5,
+      image: doctor4,
     },
     {
-      text: "I love how I can book appointments online and get reminders. The virtual consultation feature is a game-changer for busy parents!",
-      author: "Mark Anderson",
-      role: "Parent",
+      text: "Outstanding medical expertise combined with genuine compassion. The team went above and beyond to ensure my recovery was smooth and comfortable. Highly recommend!",
+      author: "Michael Lee",
+      role: "Engineer",
       rating: 5,
+      image: doctor2,
     },
     {
-      text: "The health records feature keeps everything organized. I can easily share my medical history with new doctors without hassle.",
-      author: "Lisa Martinez",
-      role: "Patient",
+      text: "From the initial consultation to follow-up care, everything was handled with utmost professionalism. The facility is modern and the staff truly cares about patient well-being.",
+      author: "Emily Rodriguez",
+      role: "Marketing Director",
       rating: 5,
+      image: doctor3,
+    },
+    {
+      text: "The care I received was exceptional. The staff was professional, caring, and made me feel comfortable throughout my treatment. I couldn't be happier with the results.",
+      author: "Sarah Chen",
+      role: "Teacher",
+      rating: 5,
+      image: img1,
+    },
+    {
+      text: "Outstanding medical expertise combined with genuine compassion. The team went above and beyond to ensure my recovery was smooth and comfortable. Highly recommend!",
+      author: "Michael Lee",
+      role: "Engineer",
+      rating: 5,
+      image: img2,
+    },
+    {
+      text: "From the initial consultation to follow-up care, everything was handled with utmost professionalism. The facility is modern and the staff truly cares about patient well-being.",
+      author: "Emily Rodriguez",
+      role: "Marketing Director",
+      rating: 5,
+      image: img3,
     },
   ];
 
@@ -209,95 +250,78 @@ export default function Home() {
       <Navigation />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src={hero}
-            alt="Healthcare Background"
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-white/80"></div>
-        </div>
-
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <section className="relative overflow-hidden bg-[#2952A1] ">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 pb-0">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
-            <div className="space-y-8">
-              <div className="inline-flex items-center px-4 py-2 bg-green-100 rounded-full">
-                <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-                <span className="text-green-700 text-sm font-medium">
-                  ✨ Trusted by 10,000+ patients
-                </span>
-              </div>
-
-              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                Your Health Journey,{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2952a1] to-[#1e3d7a]">
-                  Simplified
-                </span>
+            <div className="space-y-8 text-white pb-20">
+              <h1 className="text-5xl text-[#FEF3E2] lg:text-7xl font-sans font-bold leading-tight">
+                Your Health Journey,<br />
+                Simplified
               </h1>
 
-              <p className="text-xl text-white leading-relaxed">
-                Connect with healthcare providers who truly understand you. Get
-                personalized doctor recommendations based on your needs,
-                preferences, and communication style.
+              <p className="text-xl opacity-90 max-w-xl leading-relaxed font-sans">
+                Connect with trusted healthcare providers, manage appointments, and access your
+                medical records—all in one secure, easy-to-use platform.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-wrap items-center gap-8">
+                <div className="flex items-center gap-2">
+                  <div className="bg-white p-1 rounded-full text-[#2952A1]">
+                    <FaCheck className="text-[10px]" />
+                  </div>
+                  <span className="font-sans font-medium">HIPAA Compliant</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FaShieldAlt className="text-white text-xl" />
+                  <span className="font-sans font-medium">Secure & Private</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <button
                   onClick={() => router.push("/onboarding")}
-                  className="px-8 py-4 bg-gradient-to-r text-xl text-black hover:text-white rounded-xl font-semibold hover:from-[#1e3d7a] hover:to-[#2952a1] transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border-[#2952a1] border-2 cursor-pointer"
+                  className="px-10 bg-[#FEF3E2] text-[#2952A1] py-4  border-2 border-white  rounded-[40px] font-bold text-lg hover:bg-white hover:text-black duration-300 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  Get Started
+                  Book Appointment
                 </button>
                 <button
                   onClick={() => {
                     const faqSection = document.getElementById("faq-section");
                     faqSection?.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="px-8 py-4 bg-gradient-to-r text-xl  text-black hover:text-white rounded-xl font-semibold hover:from-[#1e3d7a] hover:to-[#2952a1] transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border-[#2952a1] border-2 cursor-pointer"
+                  className="px-10 bg-[#FEF3E2] text-[#2952A1] py-4  border-2 border-white  rounded-[40px] font-bold text-lg hover:bg-white hover:text-black duration-300 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  Learn More
+                  Learn More <FaArrowRight className="text-sm" />
                 </button>
-              </div>
-
-              <div className="flex items-center gap-8 pt-4">
-                <div className="flex items-center gap-2">
-                  <FaCheckCircle className="text-green-500 text-2xl" />
-                  <span className="text-black font-medium">
-                    HIPAA Compliant
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <FaCheckCircle className="text-green-500 text-2xl" />
-                  <span className="text-black  font-medium">
-                    Secure & Private
-                  </span>
-                </div>
               </div>
             </div>
 
             {/* Right Image */}
-            <div className="relative">
-              <div className="relative bg-white rounded-3xl shadow-2xl">
+            <div className="relative flex justify-center lg:justify-end items-end h-full">
+              <div className="relative w-full max-w-[600px]">
                 <Image
                   src={doctorHeroImage}
                   alt="Healthcare Professional"
-                  className="w-full h-auto"
+                  className="w-full h-auto relative z-10"
                   priority
                 />
-                <div className="absolute bottom-6 left-6 bg-white rounded-2xl p-4 shadow-xl hover:scale-105">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="text-green-600 text-xl">✓</span>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-gray-900">500+</p>
-                      <p className="text-sm text-gray-600">Verified Doctors</p>
-                    </div>
+
+                {/* Floating Cards */}
+                {/* 500+ Card */}
+                <div className="absolute top-[40%] right-0 lg:-right-10 bg-[#E3EDF7] rounded-2xl p-6 shadow-xl z-20 flex flex-col items-center min-w-[170px] text-center border border-white/50">
+                  <p className="text-4xl font-bold text-slate-900">500+</p>
+                  <p className="text-lg text-slate-600 font-medium">Mbbs Doctor</p>
+                </div>
+
+                {/* Next Appointment Card */}
+                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0 lg:-left-20 bg-white rounded-2xl p-5 shadow-2xl z-20 flex items-center gap-4 min-w-[240px] border border-gray-100">
+                  <div className="w-14 h-14 bg-[#0061BC] rounded-xl flex items-center justify-center">
+                    <FaCalendarAlt className="text-white text-2xl" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 font-medium">Next Appointment</p>
+                    <p className="text-lg font-bold text-gray-900">Today at 2:30 PM</p>
                   </div>
                 </div>
               </div>
@@ -307,13 +331,13 @@ export default function Home() {
       </section>
 
       {/* Services Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-[#2952A1]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-5xl font-bold text-[#FEF3E2] mb-4">
               Comprehensive Care at Your Fingertips
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-[#FEF3E2] max-w-3xl mx-auto">
               Experience healthcare the way it should be - personalized,
               accessible, and human-centered.
             </p>
@@ -326,11 +350,15 @@ export default function Home() {
                 className="bg-[#E8F4F8]  group-hover:scale-110 transition-transform duration-300 rounded-2xl p-8 shadow-md hover:shadow-2xl  duration-300 border border-gray-200 hover:border-[#2952a1]/50 group hover:-translate-y-2 cursor-pointer hover:bg-white"
               >
                 <div
-                  className={`w-16 h-16 ${service.bgColor} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}
+                  className={`w-20 h-20 ${service.bgColor} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}
                 >
-                  <span className="text-3xl group-hover:scale-110 transition-transform duration-300">
-                    {service.icon}
-                  </span>
+                  <Image
+                    src={service.icon}
+                    alt={service.title}
+                    width={48}
+                    height={48}
+                    className="group-hover:scale-110 transition-transform duration-300"
+                  />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-[#2952a1] transition-colors duration-300">
                   {service.title}
@@ -361,109 +389,166 @@ export default function Home() {
       </section>
 
       {/* Doctors Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-[#2952A1] relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-16 underline-offset-8">
+            <h2 className="text-5xl font-bold text-white mb-4">
               Meet Our Healthcare Providers
             </h2>
-            <p className="text-xl text-gray-600">
-              Experienced professionals dedicated to your wellbeing
+            <p className="text-xl text-white/90">
+              Experienced, compassionate professionals dedicated to your wellbeing
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 relative">
+            {/* Dotted Connection Line with Diamonds (Desktop only) */}
+            <div className="hidden lg:block absolute top-[45%] left-0 w-full h-px border-b-2 border-dashed border-[#3B82F6] opacity-30 z-0"></div>
+            <div className="hidden lg:flex absolute top-[45%] left-0 w-full justify-around -translate-y-1/2 z-0 px-12">
+              <div className="w-3 h-3 bg-[#3B82F6] rotate-45 opacity-40 invisible"></div>
+              <div className="w-3 h-3 bg-[#3B82F6] rotate-45 opacity-40"></div>
+              <div className="w-3 h-3 bg-[#3B82F6] rotate-45 opacity-40"></div>
+              <div className="w-3 h-3 bg-[#3B82F6] rotate-45 opacity-40"></div>
+            </div>
+
             {doctors.map((doctor, index) => (
               <div
                 key={index}
-                className="bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:border-[#2952a1]/30 cursor-pointer group"
+                className="bg-[#F9F9F7] rounded-[32px] p-4 shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer group z-10"
               >
-                <div className="relative h-64 bg-gradient-to-br from-blue-100 to-purple-100 overflow-hidden">
+                <div className="relative h-60 w-full mb-6 overflow-hidden rounded-2xl">
                   <Image
                     src={doctor.image}
                     alt={doctor.name}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    fill
+                    className="object-cover"
                   />
                 </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-1">
+                <div className="px-2 pb-4">
+                  <h3 className="text-xl font-bold text-[#1F2937] mb-1">
                     {doctor.name}
                   </h3>
-                  <p className="text-gray-600 mb-3">{doctor.specialty}</p>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-1">
-                      <span className="text-yellow-400">⭐</span>
-                      <span className="font-semibold text-gray-900">
-                        {doctor.rating}
-                      </span>
-                      <span className="text-gray-500 text-sm">
-                        ({doctor.reviews})
-                      </span>
+                  <p className="text-[#22C55E] font-medium text-sm mb-3">
+                    {doctor.specialty}
+                  </p>
+                  <div className="flex items-center gap-1 mb-6">
+                    <div className="flex text-[#FBBF24] gap-0.5">
+                      {[...Array(5)].map((_, i) => (
+                        <span key={i} className="text-xl font-semibold ">★</span>
+                      ))}
                     </div>
+                    <span className="text-gray-400 text-xs ml-1">
+                      ({doctor.reviews} reviews)
+                    </span>
                   </div>
                   <button
                     onClick={() => router.push(`/doctors/${doctor.id}`)}
-                    className="w-full cursor-pointer px-4 py-3 bg-[#2952a1] text-white rounded-xl font-semibold hover:bg-[#1e3d7a] transition-colors"
+                    className="w-full cursor-pointer px-6 py-3.5 bg-[#0052CC] text-white rounded-2xl font-bold text-sm hover:bg-[#0747A6] transition-all shadow-md"
                   >
-                    View Profile
+                    Book Appointment
                   </button>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="text-center mt-12">
+          <div className="text-center mt-16">
             <button
               onClick={() => router.push("/search-doctors")}
-              className="px-8 cursor-pointer py-4 bg-white text-[#2952a1] border-2 border-[#2952a1] rounded-xl font-semibold hover:bg-[#ebe2cd]/30 transition-all"
+              className="px-10 py-4 bg-white text-[#0084FF] rounded-full font-bold text-lg hover:bg-gray-50 transition-all shadow-lg cursor-pointer"
             >
-              View All Doctors
+              View All Providers
             </button>
           </div>
         </div>
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-24 bg-[#2952A1] relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-16 underline-offset-8">
+            <h2 className="text-5xl font-bold text-white mb-4">
               What Our Patients Say
             </h2>
-            <p className="text-xl text-gray-600">
-              Real stories from our satisfied patients
+            <p className="text-xl text-white/90">
+              Real experiences from people who trust us with their health
             </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-2xl p-8 shadow-2xl hover:shadow-2xl transition-all duration-300 border border-gray-200 hover:border-[#2952a1] hover:-translate-y-2 cursor-pointer hover:scale-105"
+          <div className="relative">
+            {/* Carousel Content */}
+            <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8 min-h-[480px]">
+              {/* Left Arrow */}
+              <button
+                onClick={prevTestimonial}
+                className="absolute left-0 lg:-left-20 z-20 w-12 h-12 bg-white rounded-full flex items-center justify-center text-[#14B8A6] shadow-xl hover:bg-teal-50 transition-all cursor-pointer"
               >
-                <div className="flex gap-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <span key={i} className="text-yellow-400 text-xl">
-                      ⭐
-                    </span>
-                  ))}
-                </div>
-                <p className="text-gray-700 leading-relaxed mb-6 italic">
-                  "{testimonial.text}"
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#2952a1] to-[#1e3d7a] rounded-full flex items-center justify-center text-white font-bold hover:scale-110 transition-transform duration-300">
-                    {testimonial.author.charAt(0)}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">
-                      {testimonial.author}
-                    </p>
-                    <p className="text-sm text-gray-600">{testimonial.role}</p>
-                  </div>
-                </div>
+                <FaChevronLeft className="text-xl" />
+              </button>
+
+              {/* Cards Container */}
+              <div className="flex items-center justify-center gap-4 lg:gap-10 w-full overflow-visible py-10">
+                {testimonials.map((testimonial, index) => {
+                  const isCenter = index === currentTestimonial;
+                  const isLeft = index === (currentTestimonial - 1 + testimonials.length) % testimonials.length;
+                  const isRight = index === (currentTestimonial + 1) % testimonials.length;
+
+                  if (!isCenter && !isLeft && !isRight) return null;
+
+                  return (
+                    <div
+                      key={index}
+                      className={`bg-white rounded-[32px] p-8 shadow-2xl transition-all duration-500 flex flex-col items-center
+                        ${isCenter ? 'scale-105 z-10 w-full max-w-sm md:max-w-md opacity-100' : 'hidden lg:flex w-full max-w-xs opacity-50 scale-90'}
+                      `}
+                    >
+                      <div className="flex items-center gap-4 mb-8 w-full">
+                        <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-teal-100">
+                          <Image
+                            src={testimonial.image}
+                            alt={testimonial.author}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="text-left">
+                          <h4 className="text-xl font-bold text-[#14B8A6] leading-tight">{testimonial.author}</h4>
+                          <p className="text-[#1E3A8A] font-semibold text-sm">{testimonial.role}</p>
+                        </div>
+                      </div>
+
+                      <p className="text-gray-600 leading-relaxed mb-8 text-base font-medium">
+                        "{testimonial.text}"
+                      </p>
+
+                      <div className="flex gap-1.5 mt-auto">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className="text-[#FBBF24] text-2xl">★</span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
+
+              {/* Right Arrow */}
+              <button
+                onClick={nextTestimonial}
+                className="absolute right-0 lg:-right-20 z-20 w-12 h-12 bg-white rounded-full flex items-center justify-center text-[#14B8A6] shadow-xl hover:bg-teal-50 transition-all cursor-pointer"
+              >
+                <FaChevronRight className="text-xl" />
+              </button>
+            </div>
+
+            {/* Pagination Dots */}
+            <div className="flex justify-center gap-3 mt-4">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentTestimonial(index)}
+                  className={`h-3 w-3 rounded-full transition-all duration-300 ${index === currentTestimonial ? 'bg-[#FEF9C3] w-6' : 'bg-white/30'
+                    }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -482,15 +567,15 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <button
               onClick={() => router.push("/onboarding")}
-              className="px-10 py-4 bg-white text-[#2952a1] rounded-xl font-semibold hover:bg-[#ebe2cd] transition-all shadow-xl"
+              className="px-10 bg-[#FEF3E2] text-[#2952A1] py-4  border-2 border-white  rounded-[40px] font-bold text-lg hover:bg-white hover:text-black duration-300 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              Get Started Now
+              Create  Free Account
             </button>
             <button
               onClick={() => router.push("/login")}
-              className="px-10 py-4 bg-transparent text-white border-2 border-white rounded-xl font-semibold hover:bg-white/10 transition-all"
+              className="px-10 bg-[#FEF3E2] text-[#2952A1] py-4  border-2 border-white  rounded-[40px] font-bold text-lg hover:bg-white hover:text-black duration-300 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              Sign In
+              Schedule a Demo
             </button>
           </div>
 
@@ -517,13 +602,13 @@ export default function Home() {
       </section>
 
       {/* FAQ Section */}
-      <section id="faq-section" className="py-20 bg-white">
+      <section id="faq-section" className="py-20 bg-[#2952A1]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Frequently <span className="text-[#2952a1]">Asked Questions</span>
+            <h2 className="text-5xl font-bold text-[#FEF3E2] mb-4">
+              Frequently <span className="text-white">Asked Questions</span>
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-white/80">
               Everything you need to know about NovaHealth
             </p>
           </div>
@@ -532,7 +617,7 @@ export default function Home() {
             {faqData.map((item, index) => (
               <div
                 key={index}
-                className="bg-[#ebe2cd]/30 rounded-2xl border-2 border-[#2952a1]/20 overflow-hidden hover:border-[#2952a1]/50 transition-all shadow-sm"
+                className="bg-[#E5E7EB] rounded-2xl border-2 border-[#2952a1]/20 overflow-hidden hover:border-[#2952a1]/50 transition-all shadow-sm"
               >
                 <button
                   className="w-full flex justify-between items-center p-6 text-left hover:bg-[#ebe2cd]/50 transition-colors"
@@ -584,29 +669,32 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="text-center mt-12">
-            <p className="text-gray-600 mb-4">Still have questions?</p>
-            <button
-              onClick={() => router.push("/")}
-              className="px-8 py-3 bg-gradient-to-r from-[#2952a1] to-[#1e3d7a] text-white rounded-xl font-semibold hover:from-[#1e3d7a] hover:to-[#2952a1] transition-all shadow-lg"
-            >
-              Contact Support
-            </button>
-          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#2952a1] text-white py-16">
+      <footer className="bg-[#012d61] text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             {/* Nova Health Column */}
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
-                  <span className="text-[#2952a1] text-2xl">❤️</span>
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+                  <Image
+                    src={imgFooter1}
+                    alt="Nova Health Logo"
+                    width={28}
+                    height={28}
+                    className="object-contain"
+                  />
                 </div>
-                <h3 className="text-2xl font-bold">Nova Health</h3>
+                <Image
+                  src={imgFooter2}
+                  alt="Nova Health Footer Image"
+                  width={100}
+                  height={40}
+                  className="object-contain h-[42px] w-auto"
+                />
               </div>
               <p className="text-white/80 mb-6 leading-relaxed">
                 His Footer Text Ties Directly To Your Portfolio's Theme Of

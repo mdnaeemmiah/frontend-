@@ -2,6 +2,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
+import img1 from "@/assets/img (1).png";
+import img2 from "@/assets/img (2).png";
+import img3 from "@/assets/img (3).png";
+import img4 from "@/assets/img (4).png";
 
 // Static doctors data
 const STATIC_DOCTORS = [
@@ -14,7 +19,7 @@ const STATIC_DOCTORS = [
     experience: 12,
     location: "Dhaka, Bangladesh",
     bio: "Experienced cardiologist with 12+ years of practice. Specializes in preventive cardiology and patient education.",
-    profilePicture: "https://i.pravatar.cc/150?img=1",
+    profilePicture: img1,
     status: "active",
   },
   {
@@ -26,7 +31,7 @@ const STATIC_DOCTORS = [
     experience: 15,
     location: "Dhaka, Bangladesh",
     bio: "Specialized in orthopedic surgery with focus on joint replacement and sports medicine.",
-    profilePicture: "https://i.pravatar.cc/150?img=2",
+    profilePicture: img2,
     status: "active",
   },
   {
@@ -38,7 +43,7 @@ const STATIC_DOCTORS = [
     experience: 8,
     location: "Dhaka, Bangladesh",
     bio: "Dedicated family medicine physician. Provides comprehensive healthcare for all age groups.",
-    profilePicture: "https://i.pravatar.cc/150?img=3",
+    profilePicture: img3,
     status: "active",
   },
   {
@@ -50,7 +55,7 @@ const STATIC_DOCTORS = [
     experience: 11,
     location: "Dhaka, Bangladesh",
     bio: "Expert neurologist specializing in migraine management, epilepsy, and neurological disorders.",
-    profilePicture: "https://i.pravatar.cc/150?img=4",
+    profilePicture: img4,
     status: "blocked",
   },
   {
@@ -62,7 +67,7 @@ const STATIC_DOCTORS = [
     experience: 9,
     location: "Dhaka, Bangladesh",
     bio: "Board-certified dermatologist specializing in medical and cosmetic dermatology.",
-    profilePicture: "https://i.pravatar.cc/150?img=5",
+    profilePicture: img2,
     status: "active",
   },
 ];
@@ -161,11 +166,14 @@ export default function AdminDoctors() {
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-4 flex-1">
                     {doctor.profilePicture && (
-                      <img
-                        src={doctor.profilePicture}
-                        alt={doctor.name}
-                        className="w-20 h-20 rounded-full object-cover border-2 border-[#2952a1]/20"
-                      />
+                      <div className="flex-shrink-0 relative w-20 h-20">
+                        <Image
+                          src={doctor.profilePicture}
+                          alt={doctor.name}
+                          fill
+                          className="rounded-full object-cover border-2 border-[#2952a1]/20"
+                        />
+                      </div>
                     )}
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
