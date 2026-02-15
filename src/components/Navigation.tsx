@@ -5,7 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import logo from "../assets/Frame.png";
+import logo from "../assets/image/div.png";
+import logo1 from "../assets/image/attachment-removebg-preview 1.svg";
 
 interface User {
   name: string;
@@ -86,9 +87,13 @@ export default function Navigation() {
                 height={40}
                 className="group-hover:scale-105 transition-transform duration-200"
               />
-              <span className="text-2xl font-bold bg-gradient-to-r from-[#2952a1] to-[#1e3d7a] bg-clip-text text-transparent">
-                NovaHealth
-              </span>
+              <Image
+                src={logo1}
+                alt="Logo"
+                width={100}
+                height={100}
+                className="object-contain h-[30px] sm:h-[40px] w-auto"
+              />
             </Link>
           </div>
 
