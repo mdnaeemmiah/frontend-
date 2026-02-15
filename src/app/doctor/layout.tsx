@@ -4,6 +4,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import imgFooter1 from "../../assets/image/Vector.svg";
+import imgFooter2 from "../../assets/image/attachment-removebg-preview 1.svg";
+import Image from "next/image";
 
 // Static doctor data
 const STATIC_DOCTOR = {
@@ -68,12 +71,27 @@ export default function DoctorLayout({
         <div className="h-20 flex items-center justify-between px-6 border-b border-gray-200">
           {sidebarOpen ? (
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#2952a1] to-[#1e3d7a] rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">N</span>
+         <div className="w-10 h-10 bg-gradient-to-br from-[#2952a1] to-[#1e3d7a] rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+                  <Image
+                    src={imgFooter1}
+                    alt="Nova Health Logo"
+                    width={28}
+                    height={28}
+                    className="object-contain"
+                  />
+                </div>
+
               </div>
               <div>
                 <span className="text-xl font-bold text-gray-900">
-                  NovaHealth
+                              <Image
+                    src={imgFooter2}
+                    alt="Nova Health Footer Image"
+                    width={100}
+                    height={40}
+                    className="object-contain h-[42px] w-auto"
+                  />
                 </span>
                 <p className="text-xs text-gray-500">Doctor Portal</p>
               </div>

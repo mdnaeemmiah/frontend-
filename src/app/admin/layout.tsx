@@ -4,6 +4,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import imgFooter1 from "../../assets/image/Vector.svg";
+import imgFooter2 from "../../assets/image/attachment-removebg-preview 1.svg";
+import Image from "next/image";
+
 
 // Static admin data
 const STATIC_ADMIN = {
@@ -44,11 +48,11 @@ export default function AdminLayout({
       path: "/admin/appointments",
       badge: "pending",
     },
-    {
-      name: "Availability Requests",
-      icon: "🕐",
-      path: "/admin/availability",
-    },
+    // {
+    //   name: "Availability Requests",
+    //   icon: "🕐",
+    //   path: "/admin/availability",
+    // },
     {
       name: "Manage Doctors",
       icon: "👨‍⚕️",
@@ -80,20 +84,34 @@ export default function AdminLayout({
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full bg-white shadow-xl transition-all duration-300 z-40 ${
-          sidebarOpen ? "w-64" : "w-20"
-        }`}
+        className={`fixed top-0 left-0 h-full bg-white shadow-xl transition-all duration-300 z-40 ${sidebarOpen ? "w-64" : "w-20"
+          }`}
       >
         {/* Logo */}
         <div className="h-20 flex items-center justify-between px-6 border-b border-gray-200">
           {sidebarOpen ? (
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-[#2952a1] to-[#1e3d7a] rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">N</span>
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+                  <Image
+                    src={imgFooter1}
+                    alt="Nova Health Logo"
+                    width={28}
+                    height={28}
+                    className="object-contain"
+                  />
+                </div>
+
               </div>
               <div>
                 <span className="text-xl font-bold text-gray-900">
-                  NovaHealth
+                  <Image
+                    src={imgFooter2}
+                    alt="Nova Health Footer Image"
+                    width={100}
+                    height={40}
+                    className="object-contain h-[42px] w-auto"
+                  />
                 </span>
                 <p className="text-xs text-gray-500">Admin Portal</p>
               </div>
@@ -121,11 +139,10 @@ export default function AdminLayout({
               <Link
                 key={item.path}
                 href={item.path}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-                  isActive
+                className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${isActive
                     ? "bg-[#2952a1] text-white shadow-lg"
                     : "text-gray-700 hover:bg-[#ebe2cd]/30"
-                }`}
+                  }`}
               >
                 <span className="text-xl">{item.icon}</span>
                 {sidebarOpen && (
@@ -168,9 +185,8 @@ export default function AdminLayout({
           )}
           <button
             onClick={handleLogout}
-            className={`w-full bg-red-100 text-red-600 py-2 rounded-lg font-medium hover:bg-red-200 transition-colors ${
-              !sidebarOpen && "text-xs"
-            }`}
+            className={`w-full bg-red-100 text-red-600 py-2 rounded-lg font-medium hover:bg-red-200 transition-colors ${!sidebarOpen && "text-xs"
+              }`}
           >
             {sidebarOpen ? "Logout" : "🚪"}
           </button>
@@ -179,9 +195,8 @@ export default function AdminLayout({
 
       {/* Main Content */}
       <main
-        className={`transition-all duration-300 ${
-          sidebarOpen ? "ml-64" : "ml-20"
-        }`}
+        className={`transition-all bg-[#2952a1] duration-300 ${sidebarOpen ? "ml-64" : "ml-20"
+          }`}
       >
         {/* Header */}
         <header className="bg-white shadow-sm border-b border-gray-200 h-20 flex items-center px-8">

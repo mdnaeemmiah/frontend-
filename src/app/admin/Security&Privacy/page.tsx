@@ -10,8 +10,8 @@ export default function AdminSettings() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Security & Privacy</h1>
-        <p className="text-gray-600 mt-1">Manage your platform security and privacy settings</p>
+        <h1 className="text-3xl font-bold text-white">Security & Privacy</h1>
+        <p className="text-gray-100 mt-1">Manage your platform security and privacy settings</p>
       </div>
 
       {/* Security Overview Cards */}

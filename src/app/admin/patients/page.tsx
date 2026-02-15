@@ -180,25 +180,6 @@ export default function AdminPatients() {
                         )}
                     </div>
                   </div>
-
-                  <div className="flex flex-col gap-2 ml-4">
-                    <button
-                      onClick={() => {
-                        alert(`Viewing details for ${patient.name}`);
-                      }}
-                      className="px-4 py-2 bg-[#2952a1] text-white rounded-lg font-medium hover:bg-[#1e3d7a] transition-colors text-sm whitespace-nowrap"
-                    >
-                      👁️ View Details
-                    </button>
-                    <button
-                      onClick={() => {
-                        alert(`Sending message to ${patient.name}`);
-                      }}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors text-sm whitespace-nowrap"
-                    >
-                      💬 Message
-                    </button>
-                  </div>
                 </div>
               </div>
             ))}

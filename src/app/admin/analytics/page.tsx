@@ -54,8 +54,8 @@ export default function AdminAnalytics() {
       {/* Header with Time Range Filter */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-          <p className="text-gray-600 mt-1">Track your platform performance</p>
+          <h1 className="text-3xl font-bold text-white">Analytics Dashboard</h1>
+          <p className="text-gray-100 mt-1">Track your platform performance</p>
         </div>
         <div className="flex items-center space-x-2">
           {["7days", "30days", "90days", "1year"].map((range) => (

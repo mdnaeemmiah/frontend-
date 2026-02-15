@@ -3,6 +3,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { FaCheck, FaArrowRight } from "react-icons/fa";
+import img1 from "@/assets/img (1).png";
+import img2 from "@/assets/img (2).png";
+import img3 from "@/assets/img (3).png";
+import img4 from "@/assets/img (4).png";
 
 // Static data
 const STATIC_STATS = {
@@ -15,43 +21,48 @@ const STATIC_STATS = {
 const STATIC_RECENT_APPOINTMENTS = [
   {
     _id: "apt_001",
-    patientName: "John Doe",
+    patientName: "John Smith",
     doctorName: "Dr. Sarah Johnson",
-    appointmentDate: "2026-01-20T10:00:00Z",
-    appointmentTime: "10:00 AM",
-    status: "pending",
+    appointmentDate: "1/22/2026",
+    appointmentTime: "10.00 AM",
+    status: "approved",
+    image: img1
   },
   {
     _id: "apt_002",
-    patientName: "Jane Smith",
+    patientName: "Emily Johnson",
     doctorName: "Dr. Michael Chen",
-    appointmentDate: "2026-01-18T14:30:00Z",
-    appointmentTime: "02:30 PM",
+    appointmentDate: "1/22/2026",
+    appointmentTime: "11.30 AM",
     status: "approved",
+    image: img2
   },
   {
     _id: "apt_003",
-    patientName: "Robert Brown",
+    patientName: "Michael Brown",
     doctorName: "Dr. Emily Thompson",
-    appointmentDate: "2026-01-22T11:00:00Z",
-    appointmentTime: "11:00 AM",
-    status: "approved",
+    appointmentDate: "1/23/2026",
+    appointmentTime: "11.30 AM",
+    status: "pending",
+    image: img3
   },
   {
     _id: "apt_004",
-    patientName: "Lisa Anderson",
+    patientName: "Sarah Davis",
     doctorName: "Dr. David Kumar",
-    appointmentDate: "2026-01-16T09:00:00Z",
-    appointmentTime: "09:00 AM",
-    status: "rejected",
+    appointmentDate: "1/23/2026",
+    appointmentTime: "03.30 AM",
+    status: "approved",
+    image: img4
   },
   {
     _id: "apt_005",
-    patientName: "Michael Wilson",
+    patientName: "David Wilson",
     doctorName: "Dr. Sarah Johnson",
-    appointmentDate: "2026-01-25T15:00:00Z",
-    appointmentTime: "03:00 PM",
-    status: "pending",
+    appointmentDate: "1/23/2026",
+    appointmentTime: "09.30 AM",
+    status: "approved",
+    image: img2
   },
 ];
 
@@ -61,16 +72,6 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-[#2952a1] to-[#1e3d7a] rounded-2xl p-8 text-white mb-8 shadow-lg">
-        <h2 className="text-3xl font-bold mb-2">
-          Welcome to Admin Dashboard 🎯
-        </h2>
-        <p className="text-white/80">
-          Manage your NovaHealth platform efficiently
-        </p>
-      </div>
-
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
@@ -171,58 +172,60 @@ export default function AdminDashboard() {
       </div>
 
       {/* Recent Appointments */}
-      <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-gray-900">
+      <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl font-bold text-[#1F2937]">
             Recent Appointments
-          </h3>
+          </h2>
           <Link
             href="/admin/appointments"
-            className="text-[#2952a1] hover:text-[#1e3d7a] font-medium text-sm"
+            className="flex items-center gap-2 text-gray-900 font-bold hover:text-[#0052CC] transition-colors"
           >
-            View All →
+            View All <FaArrowRight className="text-sm" />
           </Link>
         </div>
 
         {recentAppointments.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500">No appointments yet</p>
+          <div className="text-center py-12 bg-gray-50 rounded-2xl">
+            <p className="text-gray-500 font-medium">No appointments yet</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {recentAppointments.map((appointment: any) => (
               <div
                 key={appointment._id}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                className="flex items-center justify-between p-2 bg-[#F9FAFB] hover:bg-gray-100 transition-colors rounded-[16px]"
               >
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <p className="font-semibold text-gray-900">
+                <div className="flex items-center gap-4">
+                  <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-sm">
+                    <Image
+                      src={appointment.image || img1}
+                      alt={appointment.patientName}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold text-[#1F2937] leading-tight">
                       {appointment.patientName}
-                    </p>
-                    <span className="text-gray-400">→</span>
-                    <p className="text-[#2952a1] font-medium">
-                      {appointment.doctorName}
+                    </h4>
+                    <p className="text-sm text-gray-500 font-medium mt-1">
+                      {appointment.appointmentDate} at {appointment.appointmentTime}
                     </p>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    {new Date(appointment.appointmentDate).toLocaleDateString()}{" "}
-                    at {appointment.appointmentTime}
-                  </p>
                 </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    appointment.status === "pending"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : appointment.status === "approved"
-                      ? "bg-green-100 text-green-700"
-                      : appointment.status === "rejected"
-                      ? "bg-red-100 text-red-700"
-                      : "bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  {appointment.status}
-                </span>
+
+                <div>
+                  {appointment.status === "approved" ? (
+                    <button className="flex items-center gap-2 bg-[#0052CC] text-white px-8 py-2.5 rounded-[10px] font-bold text-sm shadow-sm hover:bg-[#0041a3] transition-all">
+                      <FaCheck className="text-xs" /> Approve
+                    </button>
+                  ) : (
+                    <div className="bg-[#FEF3E2] text-[#B45309] px-8 py-2.5 rounded-[10px] font-bold text-sm flex items-center justify-center min-w-[124px]">
+                      Pending
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>

@@ -149,8 +149,8 @@ export default function AdminAppointments() {
       </div>
 
       {/* Appointments List */}
-      <div className="bg-white rounded-xl shadow-md border border-gray-100">
-        <div className="p-6 border-b border-gray-200">
+      <div className="  ">
+        <div className="p-6 bg-white border-b mb-6 border-gray-200 rounded-2xl">
           <h2 className="text-xl font-bold text-gray-900">
             All Appointments ({filteredAppointments.length})
           </h2>
@@ -161,7 +161,7 @@ export default function AdminAppointments() {
             <p className="text-gray-500">No appointments found</p>
           </div>
         ) : (
-          <div className="p-6 space-y-4">
+          <div className=" space-y-4">
             {filteredAppointments.map((appointment) => (
               <div
                 key={appointment._id}
