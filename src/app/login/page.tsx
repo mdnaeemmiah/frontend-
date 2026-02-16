@@ -10,6 +10,8 @@ import Link from "next/link";
 import Image from "next/image";
 import bgImage from "../../assets/bg.png";
 import logo from "../../assets/Frame.png";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import imn1 from "../../assets/image/attachment-removebg-preview 1.svg";
 
 const loginSchema = z.object({
   email: z.string().email("Valid email is required"),
@@ -21,6 +23,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | React.ReactNode>("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -76,7 +79,13 @@ export default function LoginPage() {
               className="group-hover:scale-105 transition-transform duration-200"
             />
             <span className="text-3xl font-bold bg-gradient-to-r from-[#2952a1] to-[#1e3d7a] bg-clip-text text-transparent">
-              NovaHealth
+              <Image
+                src={imn1}
+                alt="NovaHealth Logo"
+                width={250}
+                height={100}
+                className=""
+              ></Image>
             </span>
           </Link>
           <p className="mt-3 text-gray-700 text-lg font-medium">
@@ -124,19 +133,28 @@ export default function LoginPage() {
 
             {/* Password Field */}
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-semibold text-gray-700 mb-2"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                {...register("password")}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900"
-                placeholder="Enter your password"
-              />
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    {...register("password")}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 pr-12"
+                    placeholder="Enter your password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                  </button>
+                </div>
               {errors.password && (
                 <p className="mt-2 text-sm text-red-600">
                   {errors.password.message}

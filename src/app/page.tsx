@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Navigation from "../components/Navigation";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -10,7 +10,6 @@ import doctor1 from "../assets/close-up-portrait-happy-male-doctor.jpg";
 import doctor2 from "../assets/young-woman-doctor-white-coat-with-stethoscope-making-welcoming-gesture-spreading-arms-smiling-standing-orange-wall.jpg";
 import doctor3 from "../assets/young-handsome-physician-medical-robe-with-stethoscope.jpg";
 import doctor4 from "../assets/cinematic-portrait-woman-working-healthcare-system-having-care-job.jpg";
-import logo from "../assets/logo.png";
 import hero from "../assets/hero.jpg";
 import Link from "next/link";
 import img1 from "../assets/image/div.svg";
@@ -22,34 +21,9 @@ import img6 from "../assets/image/image 6.svg";
 import imgFooter1 from "../assets/image/Vector.svg";
 import imgFooter2 from "../assets/image/attachment__2_-removebg-preview 1.svg";
 
-function Loading() {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#2952A1] text-white">
-      <div className="max-w-xl w-full text-center px-4">
-        <Image
-          src={logo}
-          alt="Healthcare Professional"
-          className="w-full h-auto"
-          priority
-        />
-        <p className="mb-8">Find the right doctor. Feel confident.</p>
-
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <span className="w-3 h-3 bg-[#26c6da] rounded-full animate-pulse inline-block"></span>
-          <span className="w-3 h-3 bg-[#6ee7b7] rounded-full animate-pulse inline-block delay-200"></span>
-          <span className="w-3 h-3 bg-white rounded-full animate-pulse inline-block delay-400"></span>
-        </div>
-
-        <p className="opacity-90">Loading your health journey...</p>
-      </div>
-    </div>
-  );
-}
-
 export default function Home() {
   const router = useRouter();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [showLoading, setShowLoading] = useState(true);
   const [currentTestimonial, setCurrentTestimonial] = useState(1);
 
   const nextTestimonial = () => {
@@ -59,13 +33,6 @@ export default function Home() {
   const prevTestimonial = () => {
     setCurrentTestimonial((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1));
   };
-
-  useEffect(() => {
-    const t = setTimeout(() => setShowLoading(false), 3000);
-    return () => clearTimeout(t);
-  }, []);
-
-  if (showLoading) return <Loading />;
 
   const services = [
     {

@@ -262,7 +262,7 @@ export default function Navigation() {
                   href="/login"
                   className="relative text-gray-600 hover:text-[#2952a1] px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 group"
                 >
-                  <span className="relative z-10">Login</span>
+                  <span className="relative z-10 text-[16px]">Login</span>
                   <div className="absolute inset-0 bg-[#ebe2cd]/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
                 </Link>
                 <Link
@@ -270,7 +270,7 @@ export default function Navigation() {
                   className="relative bg-gradient-to-r from-[#2952a1] to-[#1e3d7a] text-white px-6 py-3 rounded-xl text-sm font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 group overflow-hidden"
                 >
                   <span className="absolute inset-0 bg-gradient-to-r from-[#1e3d7a] to-[#2952a1] opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
-                  <span className="relative z-10 flex items-center">
+                  <span className="relative z-10 flex items-center text-[16px]">
                     Sign Up
                     <svg
                       className="ml-2 w-4 h-4 group-hover:translate-x-0.5 transition-transform"

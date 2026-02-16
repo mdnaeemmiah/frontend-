@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import SplashLoader from "../components/SplashLoader";
 
 export const metadata: Metadata = {
   title: "NovaHealth - Find Your Perfect Doctor",
@@ -14,7 +15,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        {children}
+        <SplashLoader>
+          {children}
+        </SplashLoader>
       </body>
     </html>
   );
