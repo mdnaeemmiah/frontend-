@@ -7,10 +7,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import baseApi from "@/api/baseAPi";
+import { ENDPOINTS } from "@/api/endPoints";
+import bgImage from "../../assets/bg.png";
+import logo from "../../assets/Frame.png";
 
 const verifySchema = z.object({
   email: z.string().email("Valid email is required"),
-  code: z.string().min(6, "Verification code must be 6 digits").max(6),
+  otp: z.string().min(6, "OTP must be 6 digits").max(6, "OTP must be 6 digits"),
 });
 
 type VerifyFormData = z.infer<typeof verifySchema>;
@@ -21,6 +27,8 @@ export default function VerifyEmailPage() {
   const [success, setSuccess] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMessage, setResendMessage] = useState("");
+  const [verificationData, setVerificationData] = useState<any>(null);
+  const router = useRouter();
 
   const {
     register,
@@ -39,6 +47,9 @@ export default function VerifyEmailPage() {
     const storedEmail = localStorage.getItem("verificationEmail");
     if (storedEmail) {
       setValue("email", storedEmail);
+    } else {
+      // If no stored email, redirect back to signup
+      setError("No email found for verification. Please register first.");
     }
   }, [setValue]);
 
@@ -47,39 +58,49 @@ export default function VerifyEmailPage() {
     setError("");
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/auth/verify-email`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Verification failed");
+      // Get email from localStorage if not in form data
+      const emailToUse = data.email || localStorage.getItem("verificationEmail");
+      
+      if (!emailToUse) {
+        throw new Error("No email found for verification. Please register first.");
       }
+
+      const response = await baseApi.post(ENDPOINTS.emailVerification, {
+        email: emailToUse,
+        otp: data.otp,
+      });
+
+      const result = response.data;
 
       // Clear stored email
       localStorage.removeItem("verificationEmail");
 
+      // Store user role from verification response
+      if (result.role) {
+        localStorage.setItem("userRole", result.role);
+      }
+
+      setVerificationData(result);
       setSuccess(true);
 
-      // Show success message (no redirect)
+      // Redirect to login after 3 seconds
+      setTimeout(() => {
+        router.push("/login");
+      }, 3000);
+
     } catch (err: any) {
-      setError(err.message || "Invalid verification code. Please try again.");
+      const errorMessage = err.response?.data?.message || err.message || "Invalid OTP. Please try again.";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleResendCode = async () => {
-    if (!email) {
-      setError("Please enter your email address");
+    const emailToUse = email || localStorage.getItem("verificationEmail");
+    
+    if (!emailToUse) {
+      setError("No email found for verification. Please register first.");
       return;
     }
 
@@ -88,26 +109,14 @@ export default function VerifyEmailPage() {
     setError("");
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/auth/resend-verification`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email }),
-        }
-      );
+      const response = await baseApi.post(ENDPOINTS.resendOTP, {
+        email: emailToUse,
+      });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to resend code");
-      }
-
-      setResendMessage("✅ Verification code sent! Check your email.");
+      setResendMessage("✅ New OTP sent! Check your email.");
     } catch (err: any) {
-      setError(err.message || "Failed to resend code. Please try again.");
+      const errorMessage = err.response?.data?.message || err.message || "Failed to resend OTP. Please try again.";
+      setError(errorMessage);
     } finally {
       setResendLoading(false);
     }
@@ -115,8 +124,17 @@ export default function VerifyEmailPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-2xl p-12 max-w-md w-full text-center">
+      <div className="min-h-screen relative flex items-center justify-center p-4">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src={bgImage}
+            alt="Background"
+            fill
+            className="object-cover"
+            priority
+          />
+        </div>
+        <div className="relative z-10 bg-white rounded-3xl shadow-2xl p-12 max-w-md w-full text-center">
           <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
             <svg
               className="w-10 h-10 text-white"
@@ -133,51 +151,92 @@ export default function VerifyEmailPage() {
             </svg>
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Email Verified! ✅
+            Email Verified Successfully! ✅
           </h2>
+          {verificationData && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl">
+              <p className="text-green-800 font-semibold">
+                {verificationData.message || "Email verified successfully. You can now login."}
+              </p>
+              {verificationData.role && (
+                <p className="text-green-700 text-sm mt-2">
+                  Welcome as: <span className="font-semibold capitalize">{verificationData.role}</span>
+                </p>
+              )}
+              {verificationData.email && (
+                <p className="text-green-600 text-sm mt-1">
+                  Email: {verificationData.email}
+                </p>
+              )}
+            </div>
+          )}
           <p className="text-gray-600 mb-4">
-            Your email has been successfully verified.
+            Your account has been activated successfully.
           </p>
-          <p className="text-gray-500 text-sm">Redirecting to login page...</p>
+          <p className="text-gray-500 text-sm mb-4">Redirecting to login page in 3 seconds...</p>
+          <div className="space-y-3">
+            <Link
+              href="/login"
+              className="inline-block bg-gradient-to-r from-[#2952a1] to-[#1e3d7a] text-white px-6 py-3 rounded-xl font-semibold hover:from-[#1e3d7a] hover:to-[#2952a1] transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              Go to Login Now
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-32 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-600/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-gradient-to-tr from-indigo-400/20 to-pink-600/20 rounded-full blur-3xl"></div>
+    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-y-auto">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src={bgImage}
+          alt="Background"
+          fill
+          className="object-cover"
+          priority
+        />
       </div>
 
-      <div className="relative w-full max-w-md">
+      <div className="relative z-10 w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center space-x-3 group">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-200">
-              <span className="text-white font-bold text-xl">N</span>
-            </div>
-            <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <Image
+              src={logo}
+              alt="NovaHealth Logo"
+              width={40}
+              height={40}
+              className="group-hover:scale-105 transition-transform duration-200"
+            />
+            <span className="text-3xl font-bold bg-gradient-to-r from-[#2952a1] to-[#1e3d7a] bg-clip-text text-transparent">
               NovaHealth
             </span>
           </Link>
-          <p className="mt-3 text-gray-600 text-lg">Verify your email</p>
+          <p className="mt-3 text-gray-700 text-lg font-medium ">Verify your email</p>
         </div>
 
         {/* Verification Card */}
-        <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-gray-100">
+        <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-white/20">
           <div className="mb-8 text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-[#2952a1]/10 to-[#1e3d7a]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <span className="text-4xl">📧</span>
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Check Your Email
             </h1>
             <p className="text-gray-600">
-              We've sent a 6-digit verification code to your email address.
-              Please enter it below to activate your account.
+              We've sent a 6-digit OTP (One-Time Password) to:
+            </p>
+            {email && (
+              <p className="text-[#2952a1] font-semibold text-lg mt-2">
+                {email}
+              </p>
+            )}
+            <p className="text-gray-600 mt-2">
+              Please enter the OTP below to verify and activate your account.
             </p>
           </div>
 
@@ -199,7 +258,7 @@ export default function VerifyEmailPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Email Field */}
-            <div>
+            {/* <div>
               <label
                 htmlFor="email"
                 className="block text-sm font-semibold text-gray-700 mb-2"
@@ -210,7 +269,7 @@ export default function VerifyEmailPage() {
                 id="email"
                 type="email"
                 {...register("email")}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2952a1] focus:border-transparent transition-all duration-200 text-gray-900"
                 placeholder="you@example.com"
               />
               {errors.email && (
@@ -218,32 +277,32 @@ export default function VerifyEmailPage() {
                   {errors.email.message}
                 </p>
               )}
-            </div>
+            </div> */}
 
-            {/* Verification Code Field */}
+            {/* OTP Field */}
             <div>
               <label
-                htmlFor="code"
+                htmlFor="otp"
                 className="block text-sm font-semibold text-gray-700 mb-2"
               >
-                Verification Code
+                OTP (One-Time Password)
               </label>
               <input
-                id="code"
+                id="otp"
                 type="text"
                 maxLength={6}
-                {...register("code")}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 text-center text-2xl font-bold tracking-widest"
+                {...register("otp")}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2952a1] focus:border-transparent transition-all duration-200 text-gray-900 text-center text-2xl font-bold tracking-widest"
                 placeholder="000000"
                 autoComplete="off"
               />
-              {errors.code && (
+              {errors.otp && (
                 <p className="mt-2 text-sm text-red-600">
-                  {errors.code.message}
+                  {errors.otp.message}
                 </p>
               )}
               <p className="mt-2 text-xs text-gray-500 text-center">
-                Enter the 6-digit code from your email
+                Enter the 6-digit OTP from your email
               </p>
             </div>
 
@@ -251,7 +310,7 @@ export default function VerifyEmailPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full bg-gradient-to-r from-[#2952a1] to-[#1e3d7a] text-white py-4 rounded-xl font-semibold hover:from-[#1e3d7a] hover:to-[#2952a1] transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center">
@@ -283,38 +342,28 @@ export default function VerifyEmailPage() {
             </button>
           </form>
 
-          {/* Resend Code */}
-          <div className="mt-8 text-center">
-            <p className="text-gray-600 mb-4">Didn't receive the code?</p>
+          {/* Resend OTP */}
+          {/* <div className="mt-8 text-center">
+            <p className="text-gray-600 mb-4">Didn't receive the OTP?</p>
             <button
               type="button"
               onClick={handleResendCode}
               disabled={resendLoading}
-              className="text-blue-600 hover:text-blue-700 font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-[#2952a1] hover:text-[#1e3d7a] font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {resendLoading ? "Sending..." : "Resend Code"}
+              {resendLoading ? "Sending..." : "Resend OTP"}
             </button>
-          </div>
+          </div> */}
 
           {/* Back to Login */}
           <div className="mt-6 text-center">
             <Link
               href="/login"
-              className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              className="text-sm text-[#2952a1] hover:text-[#1e3d7a] transition-colors"
             >
               ← Back to Login
             </Link>
           </div>
-        </div>
-
-        {/* Help Text */}
-        <div className="mt-8 text-center text-sm text-gray-500">
-          <p>
-            Having trouble? Contact{" "}
-            <Link href="/support" className="text-blue-600 hover:text-blue-700">
-              support
-            </Link>
-          </p>
         </div>
       </div>
     </div>

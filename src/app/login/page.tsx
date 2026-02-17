@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,6 +12,9 @@ import bgImage from "../../assets/bg.png";
 import logo from "../../assets/Frame.png";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import imn1 from "../../assets/image/attachment-removebg-preview 1.svg";
+import baseApi from "../../api/baseAPi";
+import { ENDPOINTS } from "../../api/endPoints";
+
 
 const loginSchema = z.object({
   email: z.string().email("Valid email is required"),
@@ -33,20 +36,117 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  // Check if user is already logged in
+  useEffect(() => {
+    const userRole = localStorage.getItem("userRole");
+    const accessToken = localStorage.getItem("access_token");
+    
+    // Only redirect if both role and token exist, but skip admin (admin should always login fresh)
+    if (userRole && accessToken && userRole !== "admin") {
+      if (userRole === "doctor") {
+        window.location.replace("/doctor/dashboard");
+      } else if (userRole === "patient") {
+        window.location.replace("/onboarding");
+      }
+    }
+  }, []);
+
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     setError("");
 
     try {
-      // Static login - simulate successful login
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API delay
+      let response;
+      let detectedRole = "";
 
-      // Store fake token in localStorage
-      localStorage.setItem("accessToken", "fake-access-token-12345");
-      localStorage.setItem("refreshToken", "fake-refresh-token-67890");
+      // Try admin login first
+      try {
+        response = await baseApi.post(ENDPOINTS.adminLogin, {
+          email: data.email,
+          password: data.password,
+        });
+        detectedRole = "admin";
+      } catch (adminError: any) {
+        // For admin login, ignore verification_required errors and treat as success
+        if (adminError?.response?.data?.verification_required && adminError?.response?.data?.email === data.email) {
+          response = adminError.response;
+          detectedRole = "admin";
+        } else {
+          // Try doctor login
+          try {
+            response = await baseApi.post(ENDPOINTS.doctorLogin, {
+              email: data.email,
+              password: data.password,
+            });
+            detectedRole = "doctor";
+          } catch (doctorError: any) {
+            // Try patient login
+            try {
+              response = await baseApi.post(ENDPOINTS.patientLogin, {
+                email: data.email,
+                password: data.password,
+              });
+              detectedRole = "patient";
+            } catch (patientError: any) {
+              // Log the patient login error for debugging
+              console.error("Patient login error:", patientError);
+              const patientErrorMsg = patientError?.response?.status === 403 
+                ? "Access forbidden. Please check your credentials or contact support."
+                : patientError?.response?.data?.message || patientError?.message || "Patient login failed.";
+              throw new Error(patientErrorMsg);
+            }
+          }
+        }
+      }
 
-      // Redirect to onboarding (patient flow)
-      window.location.href = "/onboarding";
+      // Store tokens and user info
+      if (response?.data) {
+        const { tokens, user, profile, role, permissions, verification_required, error } = response.data;
+        
+        // Use role from response if available, otherwise use detected role
+        const finalRole = role || detectedRole;
+        
+        // Check verification only for doctor and patient, not admin
+        if ((detectedRole === "doctor" || detectedRole === "patient") && verification_required) {
+          setError(error || "Email not verified. Please verify your email before logging in.");
+          setIsLoading(false);
+          return;
+        }
+        
+        // Store tokens
+        if (tokens?.access) {
+          localStorage.setItem("access_token", tokens.access);
+        }
+        if (tokens?.refresh) {
+          localStorage.setItem("refresh_token", tokens.refresh);
+        }
+        
+        // Store user role and basic info
+        localStorage.setItem("userRole", finalRole);
+        localStorage.setItem("userEmail", data.email);
+        
+        // Store user, profile, and permissions data
+        if (user) {
+          localStorage.setItem("user", JSON.stringify(user));
+        }
+        if (profile) {
+          localStorage.setItem("profile", JSON.stringify(profile));
+        }
+        if (permissions) {
+          localStorage.setItem("permissions", JSON.stringify(permissions));
+        }
+
+        // Redirect based on role
+        if (finalRole === "admin") {
+          window.location.href = "/admin/dashboard";
+        } else if (finalRole === "doctor") {
+          window.location.href = "/doctor/dashboard";
+        } else if (finalRole === "patient") {
+          window.location.href = "/onboarding";
+        } else {
+          window.location.href = "/dashboard";
+        }
+      }
     } catch (err: any) {
       setError(err.message || "Invalid email or password. Please try again.");
     } finally {

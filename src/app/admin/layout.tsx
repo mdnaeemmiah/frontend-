@@ -27,15 +27,15 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const handleLogout = () => {
-    // Clear any stored tokens
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-    }
-    // Redirect to home page
-    router.push("/");
-  };
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("user");
+    localStorage.removeItem("profile");
 
+    router.replace("/login");
+  };
   const menuItems = [
     {
       name: "Dashboard",

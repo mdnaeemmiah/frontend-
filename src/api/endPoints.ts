@@ -10,11 +10,12 @@ export const ENDPOINTS = {
   doctorRegister: "/doctors/auth/register/",
   doctorLogin:"/auth/doctor/login/",
 
-  adminLogin: "/auth/login/",
+  adminLogin: "/auth/admin/login/",
 
   emailVerification: "/auth/verify-email/verify/",
+  resendOTP: "/auth/resend-otp/",
   forgetPassword: "/auth/forgot-password/",
-  resetPassword: "/api/auth/reset-password/",
+  resetPassword: "/auth/reset-password/",
 
 
 };

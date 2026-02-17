@@ -7,17 +7,21 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import bgImage from "../../assets/bg.png";
 import logo from "../../assets/Frame.png";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import baseApi from "../../api/baseAPi";
+import { ENDPOINTS } from "../../api/endPoints";
 
 const signupSchema = z
   .object({
-    name: z.string().min(3, "Name must be at least 3 characters"),
+    fullName: z.string().min(3, "Full name must be at least 3 characters"),
     email: z.string().email("Valid email is required"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string(),
+    communicationStylePreference: z.string().optional(),
     role: z.enum(["user", "doctor"], {
       message: "Please select your role",
     }),
@@ -38,6 +42,7 @@ export default function SignupPage() {
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const router = useRouter();
 
   const {
     register,
@@ -48,6 +53,7 @@ export default function SignupPage() {
     resolver: zodResolver(signupSchema),
     defaultValues: {
       role: "user",
+      communicationStylePreference: "Warm and empathetic",
     },
   });
 
@@ -58,17 +64,30 @@ export default function SignupPage() {
     setError("");
 
     try {
-      // Static signup - simulate successful registration
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API delay
+      // Prepare data for API
+      const apiData = {
+        fullName: data.fullName,
+        email: data.email,
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+        communicationStylePreference: data.communicationStylePreference,
+      };
+
+      // Choose API endpoint based on role
+      const endpoint = data.role === "doctor" ? ENDPOINTS.doctorRegister : ENDPOINTS.PatientRegister;
+
+      // Make API call
+      const response = await baseApi.post(endpoint, apiData);
 
       // Store email for verification page
       localStorage.setItem("verificationEmail", data.email);
 
-      setSuccess(true);
+      // Directly redirect to verify email page
+      router.push("/verify-email");
 
-      // Show success message (no redirect)
     } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+      const errorMessage = err.response?.data?.message || err.message || "Something went wrong. Please try again.";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -109,12 +128,20 @@ export default function SignupPage() {
             We've sent a verification email to your inbox. Please verify your
             email to continue.
           </p>
-          <Link
-            href="/login"
-            className="inline-block bg-gradient-to-r from-[#2952a1] to-[#1e3d7a] text-white px-8 py-3 rounded-xl font-semibold hover:from-[#1e3d7a] hover:to-[#2952a1] transition-all duration-200 shadow-lg"
-          >
-            Go to Login
-          </Link>
+          <div className="space-y-3">
+            <Link
+              href="/verify-email"
+              className="block bg-gradient-to-r from-[#2952a1] to-[#1e3d7a] text-white px-8 py-3 rounded-xl font-semibold hover:from-[#1e3d7a] hover:to-[#2952a1] transition-all duration-200 shadow-lg"
+            >
+              Verify Email Now
+            </Link>
+            <Link
+              href="/login"
+              className="block border-2 border-[#2952a1] text-[#2952a1] px-8 py-3 rounded-xl font-semibold hover:bg-[#2952a1] hover:text-white transition-all duration-200"
+            >
+              Go to Login
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -303,13 +330,13 @@ export default function SignupPage() {
               <input
                 id="name"
                 type="text"
-                {...register("name")}
+                {...register("fullName")}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900"
                 placeholder="John Doe"
               />
-              {errors.name && (
+              {errors.fullName && (
                 <p className="mt-2 text-sm text-red-600">
-                  {errors.name.message}
+                  {errors.fullName.message}
                 </p>
               )}
             </div>
