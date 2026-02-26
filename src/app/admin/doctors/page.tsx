@@ -2,281 +2,367 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
-import img1 from "@/assets/img (1).png";
-import img2 from "@/assets/img (2).png";
-import img3 from "@/assets/img (3).png";
-import img4 from "@/assets/img (4).png";
+import { getAdminAppointments, adminApproveStatus, Doctor, AdminAppointmentsResponse } from "@/service/adminService";
 
-// Static doctors data
-const STATIC_DOCTORS = [
-  {
-    _id: "doc_001",
-    name: "Dr. Sarah Johnson",
-    email: "sarah.johnson@novahealth.com",
-    phone: "+880 1712345678",
-    specialization: "Cardiologist",
-    experience: 12,
-    location: "Dhaka, Bangladesh",
-    bio: "Experienced cardiologist with 12+ years of practice. Specializes in preventive cardiology and patient education.",
-    profilePicture: img1,
-    status: "active",
+// Default stats for loading
+const DEFAULT_STATS = {
+  count: 0,
+  appointments: {
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    completed: 0,
+    total: 0
   },
-  {
-    _id: "doc_002",
-    name: "Dr. Michael Chen",
-    email: "michael.chen@novahealth.com",
-    phone: "+880 1823456789",
-    specialization: "Orthopedic Surgeon",
-    experience: 15,
-    location: "Dhaka, Bangladesh",
-    bio: "Specialized in orthopedic surgery with focus on joint replacement and sports medicine.",
-    profilePicture: img2,
-    status: "active",
-  },
-  {
-    _id: "doc_003",
-    name: "Dr. Emily Thompson",
-    email: "emily.thompson@novahealth.com",
-    phone: "+880 1934567890",
-    specialization: "Family Medicine",
-    experience: 8,
-    location: "Dhaka, Bangladesh",
-    bio: "Dedicated family medicine physician. Provides comprehensive healthcare for all age groups.",
-    profilePicture: img3,
-    status: "active",
-  },
-  {
-    _id: "doc_004",
-    name: "Dr. David Kumar",
-    email: "david.kumar@novahealth.com",
-    phone: "+880 1745678901",
-    specialization: "Neurologist",
-    experience: 11,
-    location: "Dhaka, Bangladesh",
-    bio: "Expert neurologist specializing in migraine management, epilepsy, and neurological disorders.",
-    profilePicture: img4,
-    status: "blocked",
-  },
-  {
-    _id: "doc_005",
-    name: "Dr. Amanda Rodriguez",
-    email: "amanda.rodriguez@novahealth.com",
-    phone: "+880 1856789012",
-    specialization: "Dermatologist",
-    experience: 9,
-    location: "Dhaka, Bangladesh",
-    bio: "Board-certified dermatologist specializing in medical and cosmetic dermatology.",
-    profilePicture: img2,
-    status: "active",
-  },
-];
+  doctors: []
+};
 
 export default function AdminDoctors() {
-  const [doctors, setDoctors] = useState<any[]>(STATIC_DOCTORS);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [data, setData] = useState<AdminAppointmentsResponse>(DEFAULT_STATS as AdminAppointmentsResponse);
+  const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
   const [filter, setFilter] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const handleStatusChange = (doctorId: string, newStatus: string) => {
-    const updatedDoctors = doctors.map((doc) =>
-      doc._id === doctorId ? { ...doc, status: newStatus } : doc
-    );
-    setDoctors(updatedDoctors);
-    alert(`Doctor status updated to ${newStatus}`);
+  useEffect(() => {
+    fetchDoctorsData();
+  }, []);
+
+  useEffect(() => {
+    let filtered = data.doctors;
+
+    // Apply filter
+    if (filter !== "all") {
+      filtered = data.doctors.filter((doctor) => {
+        switch(filter) {
+          case "verified":
+            return doctor.is_verified;
+          case "pending":
+            return !doctor.is_verified && doctor.verification_status === "pending";
+          case "active":
+            return doctor.is_active;
+          case "rejected":
+            return !doctor.is_verified && doctor.verification_status === "rejected";
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Apply search
+    if (searchTerm) {
+      filtered = filtered.filter((doctor) =>
+        doctor.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        doctor.specialty_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        doctor.user_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        doctor.city?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredDoctors(filtered);
+  }, [filter, data.doctors, searchTerm]);
+
+  const fetchDoctorsData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await getAdminAppointments();
+      setData(response);
+    } catch (err) {
+      console.error("Error fetching doctors data:", err);
+      setError("Failed to load doctors data. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const filteredDoctors = doctors.filter((doctor) => {
-    const matchesSearch =
-      doctor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doctor.specialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doctor.email?.toLowerCase().includes(searchTerm.toLowerCase());
+  const handleStatusUpdate = async (doctorId: number, newStatus: string) => {
+    try {
+      await adminApproveStatus(doctorId, newStatus, "Status updated by admin");
+      // Refresh the data after successful update
+      await fetchDoctorsData();
+    } catch (error) {
+      console.error("Error updating doctor status:", error);
+      alert("Failed to update doctor status. Please try again.");
+    }
+  };
 
-    const matchesFilter =
-      filter === "all" || doctor.status === filter;
+  const getStatusFromDoctor = (doctor: Doctor) => {
+    if (doctor.is_verified) {
+      return "approve";
+    } else if (doctor.verification_status === "pending") {
+      return "pending";
+    } else {
+      return "reject";
+    }
+  };
 
-    return matchesSearch && matchesFilter;
-  });
+  const getVerificationBadge = (doctor: Doctor) => {
+    if (doctor.is_verified) {
+      return "bg-green-100 text-green-700";
+    } else if (doctor.verification_status === "pending") {
+      return "bg-yellow-100 text-yellow-700";
+    } else {
+      return "bg-red-100 text-red-700";
+    }
+  };
+
+  const getVerificationText = (doctor: Doctor) => {
+    if (doctor.is_verified) {
+      return "Verified";
+    } else if (doctor.verification_status === "pending") {
+      return "Pending";
+    } else {
+      return "Rejected";
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="text-gray-500 mb-4">Loading doctors data...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={fetchDoctorsData}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      {/* Filters */}
-      <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100 mb-6">
-        <div className="flex items-center space-x-4 mb-4">
-          <span className="text-sm font-semibold text-gray-700">Filter:</span>
+    <div className="p-8 bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-[#1F2937] mb-2">
+          Doctor Management
+        </h1>
+        <p className="text-gray-600">
+          Manage doctors, verification status and access control
+        </p>
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <span className="text-2xl">👨‍⚕️</span>
+            </div>
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-1">{data.count}</h3>
+          <p className="text-gray-600">Total Doctors</p>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <span className="text-2xl">✅</span>
+            </div>
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-1">{data.doctors.filter(d => d.is_verified).length}</h3>
+          <p className="text-gray-600">Verified Doctors</p>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <span className="text-2xl">⏳</span>
+            </div>
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-1">{data.doctors.filter(d => !d.is_verified && d.verification_status === 'pending').length}</h3>
+          <p className="text-gray-600">Pending Verification</p>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <span className="text-2xl">🟢</span>
+            </div>
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-1">{data.doctors.filter(d => d.is_active).length}</h3>
+          <p className="text-gray-600">Active Doctors</p>
+        </div>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100 mb-8">
+        <div className="flex flex-wrap gap-4 mb-4">
           <button
             onClick={() => setFilter("all")}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
               filter === "all"
-                ? "bg-[#2952a1] text-white"
+                ? "bg-[#0052CC] text-white shadow-md"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            All ({doctors.length})
+            All Doctors ({data.count})
+          </button>
+          <button
+            onClick={() => setFilter("verified")}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+              filter === "verified"
+                ? "bg-[#0052CC] text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            Verified ({data.doctors.filter(d => d.is_verified).length})
+          </button>
+          <button
+            onClick={() => setFilter("pending")}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+              filter === "pending"
+                ? "bg-[#0052CC] text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            Pending ({data.doctors.filter(d => !d.is_verified && d.verification_status === 'pending').length})
+          </button>
+          <button
+            onClick={() => setFilter("rejected")}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+              filter === "rejected"
+                ? "bg-[#0052CC] text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            Rejected ({data.doctors.filter(d => !d.is_verified && d.verification_status === 'rejected').length})
           </button>
           <button
             onClick={() => setFilter("active")}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
               filter === "active"
-                ? "bg-green-600 text-white"
+                ? "bg-[#0052CC] text-white shadow-md"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            Active ({doctors.filter((d) => d.status === "active").length})
-          </button>
-          <button
-            onClick={() => setFilter("blocked")}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === "blocked"
-                ? "bg-red-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            Blocked ({doctors.filter((d) => d.status === "blocked").length})
+            Active ({data.doctors.filter(d => d.is_active).length})
           </button>
         </div>
 
         <input
           type="text"
-          placeholder="Search doctors by name, specialization, or email..."
+          placeholder="Search doctors by name, specialty, email or location..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2952a1] focus:border-transparent"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0052CC] focus:border-transparent"
         />
       </div>
 
       {/* Doctors List */}
       <div className="bg-white rounded-xl shadow-md border border-gray-100">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900">
-            All Doctors ({filteredDoctors.length})
-          </h2>
+          <h2 className="text-xl font-bold text-[#1F2937]">Doctors Management</h2>
         </div>
 
         {filteredDoctors.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">No doctors found</p>
+            <p className="text-gray-500 font-medium">No doctors found</p>
           </div>
         ) : (
-          <div className="p-6 space-y-4">
+          <div className="p-6 space-y-6">
             {filteredDoctors.map((doctor) => (
-              <div
-                key={doctor._id}
-                className="p-6 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors border border-gray-200"
-              >
+              <div key={doctor.id} className="bg-gray-50 rounded-xl p-6 hover:bg-gray-100 transition-colors border border-gray-200 shadow-sm">
                 <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-4 flex-1">
-                    {doctor.profilePicture && (
-                      <div className="flex-shrink-0 relative w-20 h-20">
-                        <Image
-                          src={doctor.profilePicture}
-                          alt={doctor.name}
-                          fill
-                          className="rounded-full object-cover border-2 border-[#2952a1]/20"
+                  <div className="flex items-start space-x-4">
+                    <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-sm bg-gray-100">
+                      {doctor.profile_picture ? (
+                        <img
+                          src={doctor.profile_picture}
+                          alt={doctor.user_name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.nextElementSibling?.classList.remove('hidden');
+                          }}
                         />
+                      ) : null}
+                      <div className={`${doctor.profile_picture ? 'hidden' : ''} w-full h-full flex items-center justify-center bg-gray-200 text-gray-500 text-xs font-bold`}>
+                        {doctor.user_name.charAt(0).toUpperCase()}
                       </div>
-                    )}
+                    </div>
+
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-xl font-bold text-gray-900">
-                          {doctor.name}
-                        </h3>
+                        <h3 className="text-lg font-bold text-[#1F2937]">{doctor.user_name}</h3>
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            doctor.status === "active"
-                              ? "bg-green-100 text-green-700"
-                              : doctor.status === "blocked"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-yellow-100 text-yellow-700"
+                            getVerificationBadge(doctor)
                           }`}
                         >
-                          {doctor.status}
+                          {getVerificationText(doctor)}
+                        </span>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                            doctor.is_active 
+                              ? "bg-green-100 text-green-700" 
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {doctor.is_active ? "Active" : "Inactive"}
                         </span>
                       </div>
 
-                      <div className="space-y-1 text-sm text-gray-600 mb-3">
-                        <p>
-                          <span className="font-semibold">🩺 Specialization:</span>{" "}
-                          {doctor.specialization}
-                        </p>
-                        <p>
-                          <span className="font-semibold">📧 Email:</span>{" "}
-                          {doctor.email}
-                        </p>
-                        {doctor.phone && (
-                          <p>
-                            <span className="font-semibold">📱 Phone:</span>{" "}
-                            {doctor.phone}
-                          </p>
-                        )}
-                        {doctor.location && (
-                          <p>
-                            <span className="font-semibold">📍 Location:</span>{" "}
-                            {doctor.location}
-                          </p>
-                        )}
-                        {doctor.experience && (
-                          <p>
-                            <span className="font-semibold">⏱️ Experience:</span>{" "}
-                            {doctor.experience} years
-                          </p>
-                        )}
+                      <div className="space-y-1 text-sm text-gray-600">
+                        <p>📧 {doctor.user_email}</p>
+                        {doctor.specialty_name && <p>🏥 {doctor.specialty_name}</p>}
+                        <p>💼 {doctor.years_of_experience} years experience</p>
+                        {doctor.city && <p>📍 {doctor.city}</p>}
+                        <p>🏥 Care Mode: {doctor.care_mode}</p>
+                        <p>⭐ Rating: {doctor.average_rating.toFixed(1)} ({doctor.total_ratings} reviews)</p>
+                        <p>🗓️ Joined: {new Date(doctor.created_at).toLocaleDateString()}</p>
                       </div>
 
-                      {doctor.bio && (
-                        <p className="text-sm text-gray-700 bg-white rounded-lg p-3 border border-gray-200">
-                          {doctor.bio}
-                        </p>
+                      {doctor.vibe_tags && doctor.vibe_tags.length > 0 && (
+                        <div className="mt-3">
+                          <div className="flex flex-wrap gap-2">
+                            {doctor.vibe_tags.map((tag) => (
+                              <span
+                                key={tag.id}
+                                className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                              >
+                                {tag.name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-2 ml-4">
-                    <button
-                      onClick={() => {
-                        alert(`Doctor ${doctor.name} approved successfully!`);
-                      }}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors text-sm whitespace-nowrap"
-                    >
-                      ✅ Approve
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (
-                          confirm(
-                            `Are you sure you want to reject ${doctor.name}?`
-                          )
-                        ) {
-                          alert(`Doctor ${doctor.name} rejected!`);
-                        }
-                      }}
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors text-sm whitespace-nowrap"
-                    >
-                      ❌ Reject
-                    </button>
-                    {doctor.status !== "active" && (
-                      <button
-                        onClick={() => handleStatusChange(doctor._id, "active")}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm whitespace-nowrap"
+                  <div className="flex flex-col space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <select
+                        value={getStatusFromDoctor(doctor)}
+                        onChange={(e) => handleStatusUpdate(doctor.id, e.target.value)}
+                        className={`px-3 py-1 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          getStatusFromDoctor(doctor) === 'approve' 
+                            ? 'text-green-700 bg-green-50 border-green-300' 
+                            : getStatusFromDoctor(doctor) === 'reject' 
+                            ? 'text-red-700 bg-red-50 border-red-300' 
+                            : 'text-yellow-700 bg-yellow-50 border-yellow-300'
+                        }`}
                       >
-                        🔓 Activate
-                      </button>
-                    )}
-                    {doctor.status !== "blocked" && (
-                      <button
-                        onClick={() => {
-                          if (
-                            confirm(
-                              "Are you sure you want to block this doctor?"
-                            )
-                          ) {
-                            handleStatusChange(doctor._id, "blocked");
-                          }
-                        }}
-                        className="px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors text-sm whitespace-nowrap"
-                      >
-                        🚫 Block
-                      </button>
-                    )}
+                        <option value="pending" className="text-yellow-700">⏳ Pending</option>
+                        <option value="approve" className="text-green-700">✅ Approve</option>
+                        <option value="reject" className="text-red-700">❌ Reject</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>

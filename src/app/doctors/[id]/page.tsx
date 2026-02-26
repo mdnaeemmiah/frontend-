@@ -8,8 +8,9 @@ import Image from "next/image";
 import { FaCalendarAlt, FaMapMarkerAlt, FaGlobe, FaShieldAlt, FaChevronDown, FaChevronUp, FaStar } from "react-icons/fa";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { getDoctorById } from "@/service/matchService";
+import { getSingleDoctor, bookAppointment } from "@/service/doctorService";
 import img1 from "@/assets/img (1).png";
+import { toast, Toaster } from "sonner";
 
 export default function PublicDoctorProfilePage() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function PublicDoctorProfilePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [openSection, setOpenSection] = useState<string | null>("about");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [appointmentForm, setAppointmentForm] = useState({
     appointmentDate: "",
@@ -35,16 +37,16 @@ export default function PublicDoctorProfilePage() {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("access_token");
     setIsLoggedIn(!!token);
     fetchDoctorProfile();
   }, [doctorId]);
 
   const fetchDoctorProfile = async () => {
     try {
-      const doctor = getDoctorById(doctorId);
-      if (doctor) {
-        setDoctor(doctor);
+      const response = await getSingleDoctor(doctorId);
+      if (response && response.doctor) {
+        setDoctor(response.doctor);
       } else {
         console.error("Doctor not found");
       }
@@ -62,17 +64,53 @@ export default function PublicDoctorProfilePage() {
     setMessageForm({ subject: "", message: "" });
   };
 
-  const handleBookAppointment = (e: React.FormEvent) => {
+  const handleBookAppointment = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert("Appointment request sent! Admin will review and approve.");
-    setShowAppointmentModal(false);
-    setAppointmentForm({
-      appointmentDate: "",
-      appointmentTime: "",
-      reason: "",
-      patientPhone: "",
-      appointmentType: "in-person",
-    });
+    setIsSubmitting(true);
+    
+    try {
+      // Prepare appointment data
+      const appointmentData = {
+        doctor: parseInt(doctorId),
+        preferred_date: appointmentForm.appointmentDate,
+        preferred_time: appointmentForm.appointmentTime + ":00", // Convert to HH:MM:SS format
+        reason: appointmentForm.reason,
+        appointment_type: appointmentForm.appointmentType === "in-person" ? "In-Person Visit" : "Virtual Consultation",
+        contact_method: "both",
+        contact_number: appointmentForm.patientPhone,
+        message: appointmentForm.reason,
+      };
+
+      // Call API
+      const response = await bookAppointment(appointmentData);
+      
+      if (response.success) {
+        toast.success("Appointment request sent successfully!", {
+          description: "Admin will review and approve your appointment.",
+          duration: 5000,
+        });
+        
+        // Close modal and reset form after brief delay
+        setTimeout(() => {
+          setShowAppointmentModal(false);
+          setAppointmentForm({
+            appointmentDate: "",
+            appointmentTime: "",
+            reason: "",
+            patientPhone: "",
+            appointmentType: "in-person",
+          });
+        }, 1000);
+      }
+    } catch (error: any) {
+      console.error("Error booking appointment:", error);
+      toast.error("Failed to book appointment", {
+        description: error?.response?.data?.message || "Please try again later.",
+        duration: 5000,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -114,6 +152,7 @@ export default function PublicDoctorProfilePage() {
 
   return (
     <>
+      <Toaster position="top-right" richColors />
       <Navigation />
       <div className="min-h-screen bg-[#2952a1] py-12 px-4">
         <div className="max-w-6xl mx-auto space-y-6">
@@ -128,31 +167,52 @@ export default function PublicDoctorProfilePage() {
           {/* Header Card */}
           <div className="bg-white rounded-[32px] p-6 md:p-8 shadow-xl flex flex-col md:flex-row items-center md:items-start gap-8">
             <div className="relative w-48 h-48 md:w-40 md:h-40 rounded-2xl overflow-hidden flex-shrink-0 bg-blue-50">
-              <Image
-                src={doctor.profileImg || img1}
-                alt={doctor.name}
-                fill
-                className="object-cover"
-              />
+              {doctor.profile_picture ? (
+                <img
+                  src={doctor.profile_picture}
+                  alt={`${doctor.user?.first_name} ${doctor.user?.last_name}`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-blue-600">
+                  {doctor.user?.first_name?.[0]}{doctor.user?.last_name?.[0]}
+                </div>
+              )}
             </div>
 
             <div className="flex-1 text-center md:text-left space-y-4">
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-gray-900">{doctor.name}</h1>
+                <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+                  {doctor.user?.first_name} {doctor.user?.last_name}
+                </h1>
                 <p className="text-lg text-gray-500 font-medium">
-                  {doctor.specialization} & Internal Medicine
+                  {doctor.specialty?.name || 'Medical Specialist'}
                 </p>
               </div>
 
               <div className="flex items-center justify-center md:justify-start gap-1">
                 <div className="flex text-yellow-400">
                   {[...Array(5)].map((_, i) => (
-                    <FaStar key={i} />
+                    <FaStar key={i} className={i < Math.floor(doctor.average_rating) ? '' : 'opacity-30'} />
                   ))}
                 </div>
-                <span className="text-gray-900 font-bold ml-2">{doctor.rating || 4.9}</span>
-                <span className="text-gray-400 text-sm ml-1">({doctor.reviewCount || 247} reviews)</span>
+                <span className="text-gray-900 font-bold ml-2">{doctor.average_rating?.toFixed(1) || '0.0'}</span>
+                <span className="text-gray-400 text-sm ml-1">({doctor.total_ratings || 0} reviews)</span>
               </div>
+
+              {/* Vibe Tags */}
+              {doctor.vibe_tags && doctor.vibe_tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                  {doctor.vibe_tags.map((tag: any) => (
+                    <span
+                      key={tag.id}
+                      className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700"
+                    >
+                      {tag.name}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               <button
                 onClick={() => {
@@ -189,7 +249,7 @@ export default function PublicDoctorProfilePage() {
                 </div>
                 <div>
                   <p className="font-bold text-gray-900">Location</p>
-                  <p className="text-sm text-gray-500">{doctor.city || "Downtown Medical"}</p>
+                  <p className="text-sm text-gray-500">{doctor.city || doctor.practice_address || "N/A"}</p>
                 </div>
               </div>
 
@@ -200,7 +260,7 @@ export default function PublicDoctorProfilePage() {
                 <div>
                   <p className="font-bold text-gray-900">Languages</p>
                   <p className="text-sm text-gray-500">
-                    {doctor.languages?.join(", ") || "English, Spanish"}
+                    {doctor.languages?.length > 0 ? doctor.languages.join(", ") : "English"}
                   </p>
                 </div>
               </div>
@@ -211,7 +271,7 @@ export default function PublicDoctorProfilePage() {
                 </div>
                 <div>
                   <p className="font-bold text-gray-900">Insurance</p>
-                  <p className="text-sm text-gray-500">Most Plans</p>
+                  <p className="text-sm text-gray-500">{doctor.insurance_plans?.length > 0 ? `${doctor.insurance_plans.length} Plans` : "Most Plans"}</p>
                 </div>
               </div>
             </div>
@@ -227,12 +287,17 @@ export default function PublicDoctorProfilePage() {
                 onClick={() => toggleSection("about")}
                 className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-gray-50 transition-all cursor-pointer"
               >
-                <span className="text-lg font-bold text-gray-900">About {doctor.name}</span>
+                <span className="text-lg font-bold text-gray-900">About Dr. {doctor.user?.first_name} {doctor.user?.last_name}</span>
                 {openSection === "about" ? <FaChevronUp className="text-gray-400" /> : <FaChevronDown className="text-gray-400" />}
               </button>
               {openSection === "about" && (
                 <div className="px-6 py-4 text-gray-600 leading-relaxed bg-gray-50/50">
-                  <p>{doctor.bio || "Dr. Mitchell is a board-certified cardiologist with over 15 years of clinical experience in diagnosing and treating cardiovascular conditions. She specializes in preventive cardiology and patient-centered care, focusing on early detection and long-term heart health management."}</p>
+                  <p>{doctor.bio || "Professional medical practitioner dedicated to providing quality healthcare."}</p>
+                  <div className="mt-4 space-y-2">
+                    <p><strong>Credentials:</strong> {doctor.credentials || "N/A"}</p>
+                    <p><strong>Experience:</strong> {doctor.years_of_experience} years</p>
+                    <p><strong>Care Mode:</strong> {doctor.care_mode === 'both' ? 'In-Person & Virtual' : doctor.care_mode === 'virtual' ? 'Virtual Only' : 'In-Person Only'}</p>
+                  </div>
                 </div>
               )}
             </div>
@@ -295,11 +360,13 @@ export default function PublicDoctorProfilePage() {
             <div className="flex flex-col lg:flex-row gap-12 mb-12">
               {/* Overall Rating */}
               <div className="text-center lg:text-left space-y-2">
-                <div className="text-6xl font-black text-gray-900">{doctor.rating || 4.9}</div>
+                <div className="text-6xl font-black text-gray-900">{doctor.average_rating?.toFixed(1) || '0.0'}</div>
                 <div className="flex text-yellow-400 text-2xl justify-center lg:justify-start">
-                  {[...Array(5)].map((_, i) => <FaStar key={i} />)}
+                  {[...Array(5)].map((_, i) => (
+                    <FaStar key={i} className={i < Math.floor(doctor.average_rating || 0) ? '' : 'opacity-30'} />
+                  ))}
                 </div>
-                <div className="text-gray-500 font-medium">{doctor.reviewCount || 247} Reviews</div>
+                <div className="text-gray-500 font-medium">{doctor.total_ratings || 0} Reviews</div>
               </div>
 
               {/* Progress Bars */}
@@ -384,7 +451,7 @@ export default function PublicDoctorProfilePage() {
                     Consultation Fee
                   </p>
                   <p className="text-2xl font-bold text-[#2952a1]">
-                    ${doctor.consultationFee || "N/A"}
+                    Contact for pricing
                   </p>
                 </div>
                 <div>
@@ -392,12 +459,12 @@ export default function PublicDoctorProfilePage() {
                     Available Options
                   </p>
                   <div className="flex gap-2">
-                    {doctor.inPerson && (
+                    {(doctor.care_mode === 'both' || doctor.care_mode === 'in-person') && (
                       <span className="px-3 py-1 bg-[#ebe2cd] text-[#2952a1] rounded-full text-xs font-medium">
                         In-Person
                       </span>
                     )}
-                    {doctor.telehealth && (
+                    {(doctor.care_mode === 'both' || doctor.care_mode === 'virtual') && (
                       <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
                         Virtual
                       </span>
@@ -443,12 +510,15 @@ export default function PublicDoctorProfilePage() {
                   required
                 >
                   <option value="">Select Time</option>
-                  <option value="09:00 AM">09:00 AM</option>
-                  <option value="10:00 AM">10:00 AM</option>
-                  <option value="11:00 AM">11:00 AM</option>
-                  <option value="02:00 PM">02:00 PM</option>
-                  <option value="03:00 PM">03:00 PM</option>
-                  <option value="04:00 PM">04:00 PM</option>
+                  <option value="09:00">09:00 AM</option>
+                  <option value="10:00">10:00 AM</option>
+                  <option value="11:00">11:00 AM</option>
+                  <option value="12:00">12:00 PM</option>
+                  <option value="13:00">01:00 PM</option>
+                  <option value="14:00">02:00 PM</option>
+                  <option value="15:00">03:00 PM</option>
+                  <option value="16:00">04:00 PM</option>
+                  <option value="17:00">05:00 PM</option>
                 </select>
               </div>
 
@@ -476,7 +546,7 @@ export default function PublicDoctorProfilePage() {
                   Appointment Type <span className="text-red-500">*</span>
                 </label>
                 <div className="space-y-3">
-                  {doctor.inPerson && (
+                  {(doctor.care_mode === 'both' || doctor.care_mode === 'in-person') && (
                     <label
                       className={`flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all ${
                         appointmentForm.appointmentType === "in-person"
@@ -509,7 +579,7 @@ export default function PublicDoctorProfilePage() {
                     </label>
                   )}
 
-                  {doctor.telehealth && (
+                  {(doctor.care_mode === 'both' || doctor.care_mode === 'virtual') && (
                     <label
                       className={`flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all ${
                         appointmentForm.appointmentType === "virtual"
@@ -569,7 +639,7 @@ export default function PublicDoctorProfilePage() {
                     Consultation Fee:
                   </span>
                   <span className="text-2xl font-bold text-[#2952a1]">
-                    ${doctor.consultationFee || "TBD"}
+                    TBD
                   </span>
                 </div>
                 <p className="text-xs text-gray-600 mt-2">
@@ -580,12 +650,23 @@ export default function PublicDoctorProfilePage() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-[#2952a1] to-[#1e3d7a] text-white py-4 rounded-xl font-semibold hover:from-[#1e3d7a] hover:to-[#2952a1] transition-all"
+                  disabled={isSubmitting}
+                  className="flex-1 bg-linear-to-r from-[#2952a1] to-[#1e3d7a] text-white py-4 rounded-xl font-semibold hover:from-[#1e3d7a] hover:to-[#2952a1] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  📅 Request Appointment
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Sending Request...</span>
+                    </>
+                  ) : (
+                    <>
+                      📅 Request Appointment
+                    </>
+                  )}
                 </button>
                 <button
                   type="button"
+                  disabled={isSubmitting}
                   onClick={() => {
                     setShowAppointmentModal(false);
                     setAppointmentForm({
@@ -596,7 +677,7 @@ export default function PublicDoctorProfilePage() {
                       appointmentType: "in-person",
                     });
                   }}
-                  className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all"
+                  className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>

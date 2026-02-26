@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
-import { getDoctorsFromAssets } from "@/service/matchService";
+import { getAllDoctors } from "@/service/doctorService";
 
 interface MatchResult {
   doctorId: string;
@@ -15,29 +15,32 @@ interface MatchResult {
   distance?: number;
 }
 
-interface Doctor {
-  _id: string;
+interface VibeTag {
+  id: number;
   name: string;
-  specialization: string;
-  profileImg?: string;
-  errorImg?: string;
-  introVideo?: string;
-  bio?: string;
-  languages: string[];
-  vibeTags: string[];
-  rating?: number;
-  reviewCount?: number;
-  experience?: number;
-  consultationFee?: number;
-  city?: string;
-  chamberLocation?: {
-    address: string;
-    city: string;
-    zipCode: string;
-    googleMapsUrl?: string;
-  };
-  telehealth?: boolean;
-  inPerson?: boolean;
+  description: string | null;
+}
+
+interface Doctor {
+  id: number;
+  user: number;
+  user_name: string;
+  user_email: string;
+  profile_picture: string;
+  specialty: number | null;
+  specialty_name?: string;
+  credentials: string;
+  care_mode: string;
+  years_of_experience: number;
+  city: string | null;
+  vibe_tags: VibeTag[];
+  is_active: boolean;
+  is_verified: boolean;
+  is_accepting_patients: boolean;
+  average_rating: number;
+  total_ratings: number;
+  intro_video: string | null;
+  created_at: string;
 }
 
 export default function MatchesPage() {
@@ -53,14 +56,33 @@ export default function MatchesPage() {
 
   const fetchMatches = async () => {
     try {
-      // Get local data from assets
-      const allDoctors = getDoctorsFromAssets();
+      // Get data from /doctors/all/ API
+      const response = await getAllDoctors();
+      
+      if (!response || !response.doctors) {
+        console.error("Invalid response from API", response);
+        setError("Unable to load doctors. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      const allDoctors = response.doctors || [];
+      
+      // Take only first 3 doctors
+      const limitedDoctors = allDoctors.slice(0, 3);
+      
+      if (limitedDoctors.length === 0) {
+        setMatches([]);
+        setLoading(false);
+        return;
+      }
+
       const doctorsMap: { [key: string]: Doctor } = {};
       const matchResults: MatchResult[] = [];
 
       // Map doctors and create matches
-      allDoctors.forEach((doctor) => {
-        doctorsMap[doctor._id] = doctor;
+      limitedDoctors.forEach((doctor: Doctor) => {
+        doctorsMap[doctor.id.toString()] = doctor;
 
         // Calculate distance if user location is available
         let distance = undefined;
@@ -68,19 +90,19 @@ export default function MatchesPage() {
           distance = calculateDistance(
             userLocation.latitude,
             userLocation.longitude,
-            20.5937, // Default Dhaka latitude
-            88.9629 // Default Dhaka longitude
+            23.8103, // Default Dhaka latitude
+            90.4125 // Default Dhaka longitude
           );
         }
 
         matchResults.push({
-          doctorId: doctor._id,
-          matchScore: doctor.rating ? Math.round(doctor.rating * 20) : 85,
+          doctorId: doctor.id.toString(),
+          matchScore: doctor.average_rating ? Math.round(doctor.average_rating * 20) : 85,
           matchReasons: [
-            `${doctor.experience || 5}+ years of experience`,
-            `Specializes in ${doctor.specialization}`,
-            `Rated ${doctor.rating || 4.5}/5 by patients`,
-            doctor.telehealth
+            `${doctor.years_of_experience}+ years of experience`,
+            `Specializes in ${doctor.specialty_name || 'General Medicine'}`,
+            `Rated ${doctor.average_rating || 5.0}/5 by patients`,
+            doctor.care_mode === "virtual"
               ? "Offers virtual consultations"
               : "In-person consultation available",
           ],
@@ -91,9 +113,9 @@ export default function MatchesPage() {
       setDoctors(doctorsMap);
       setMatches(matchResults);
       setLoading(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching matches:", error);
-      setError("Failed to fetch matches. Please try again.");
+      setError(error?.message || "Failed to fetch matches. Please try again.");
       setLoading(false);
     }
   };
@@ -263,22 +285,21 @@ export default function MatchesPage() {
 
               return (
                 <div
-                  key={doctor._id}
+                  key={doctor.id}
                   className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 p-6"
                 >
                   <div className="flex items-start gap-4">
                     {/* Doctor Image - Left Side */}
-                    <div className="w-20 h-20 bg-linear-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center shadow-md overflow-hidden flex-shrink-0 relative">
-                      {doctor.profileImg ? (
-                        <Image
-                          src={doctor.profileImg}
-                          alt={doctor.name}
-                          fill
-                          className="object-cover"
+                    <div className="w-20 h-20 bg-linear-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center shadow-md overflow-hidden shrink-0">
+                      {doctor.profile_picture ? (
+                        <img
+                          src={doctor.profile_picture}
+                          alt={doctor.user_name}
+                          className="w-full h-full object-cover"
                         />
                       ) : (
                         <span className="text-2xl font-bold text-blue-600">
-                          {doctor.name
+                          {doctor.user_name
                             .split(" ")
                             .map((n: string) => n[0])
                             .join("")}
@@ -291,21 +312,21 @@ export default function MatchesPage() {
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <h3 className="text-lg font-bold text-gray-900">
-                            {doctor.name}
+                            {doctor.user_name}
                           </h3>
                           <p className="text-sm text-blue-600 font-medium">
-                            {doctor.specialization}
+                            {doctor.specialty_name || 'General Medicine'}
                           </p>
                         </div>
                         <div className="text-right">
-                          {doctor.rating && (
+                          {doctor.average_rating > 0 && (
                             <div className="flex items-center justify-end gap-1">
                               <span className="text-yellow-400">★</span>
                               <span className="font-bold text-gray-900">
-                                {doctor.rating}
+                                {doctor.average_rating.toFixed(1)}
                               </span>
                               <span className="text-xs text-gray-500">
-                                ({doctor.reviewCount || 0} reviews)
+                                ({doctor.total_ratings || 0} reviews)
                               </span>
                             </div>
                           )}
@@ -314,12 +335,12 @@ export default function MatchesPage() {
 
                       {/* Vibe Tags */}
                       <div className="flex flex-wrap gap-2 mb-3">
-                        {doctor.vibeTags?.slice(0, 3).map((tag) => (
+                        {doctor.vibe_tags?.slice(0, 3).map((tag) => (
                           <span
-                            key={tag}
+                            key={tag.id}
                             className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700"
                           >
-                            {tag}
+                            {tag.name}
                           </span>
                         ))}
                       </div>
@@ -338,19 +359,22 @@ export default function MatchesPage() {
 
                       {/* Action Buttons */}
                       <div className="flex gap-3">
-                        {doctor.introVideo && (
+                        {doctor.intro_video && (
                           <button
                             onClick={() => {
                               const modal = document.createElement('div');
-                              modal.className = 'fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4';
+                              modal.className = 'fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 cursor-pointer';
+                              modal.onclick = (e) => {
+                                if (e.target === modal) modal.remove();
+                              };
                               modal.innerHTML = `
                                 <div class="max-w-4xl w-full">
                                   <div class="flex justify-between items-center mb-4">
-                                    <h2 class="text-2xl font-bold text-white">${doctor.name} - Intro Video</h2>
-                                    <button class="text-white hover:text-gray-300 text-3xl" onclick="this.closest('div').remove()">×</button>
+                                    <h2 class="text-2xl font-bold text-white">${doctor.user_name} - Intro Video</h2>
+                                    <button class="text-white hover:text-gray-300 text-3xl" onclick="this.closest('.fixed').remove()">×</button>
                                   </div>
                                   <div class="bg-black rounded-2xl overflow-hidden">
-                                    <video src="${doctor.introVideo}" controls autoplay class="w-full max-h-[70vh]"></video>
+                                    <video src="${doctor.intro_video}" controls autoplay class="w-full max-h-[70vh]"></video>
                                   </div>
                                 </div>
                               `;
@@ -362,10 +386,10 @@ export default function MatchesPage() {
                           </button>
                         )}
                         <button
-                          onClick={() => handleSelectDoctor(doctor._id)}
+                          onClick={() => handleSelectDoctor(doctor.id.toString())}
                           className="px-6 py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all flex items-center gap-2"
                         >
-                          � View Profile
+                          👤 View Profile
                         </button>
                       </div>
                     </div>

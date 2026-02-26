@@ -137,6 +137,93 @@ export interface AdminAppointmentsResponse {
   doctors: Doctor[];
 }
 
+export interface PatientUser {
+  id: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+}
+
+export interface Patient {
+  id: number;
+  user: PatientUser;
+  date_of_birth: string | null;
+  city: string | null;
+  country: string | null;
+  zip_code: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  phone_number: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  has_preferences: boolean;
+  verification_status: string;
+}
+
+export interface AdminPatientsResponse {
+  count: number;
+  patients: Patient[];
+}
+
+export interface AppointmentPatientInfo {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  profile_picture: string;
+}
+
+export interface AppointmentDoctorInfo {
+  id: number;
+  name: string;
+  specialty: string;
+  email: string;
+  phone: string;
+  profile_picture: string;
+}
+
+export interface AppointmentDetails {
+  date: string;
+  time: string;
+  display: string;
+  type: string;
+}
+
+export interface AdminAppointment {
+  id: number;
+  booking_id: string;
+  patient_info: AppointmentPatientInfo;
+  doctor_info: AppointmentDoctorInfo;
+  appointment_details: AppointmentDetails;
+  status: string;
+  reason: string;
+  message: string;
+  contact_method: string;
+  booked_date: string;
+  admin_notes: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StatusStatistics {
+  pending: number;
+  contacted: number;
+  scheduled: number;
+  cancelled: number;
+  completed: number;
+  total: number;
+}
+
+export interface AdminAllAppointmentsResponse {
+  count: number;
+  page: number;
+  size: number;
+  total_pages: number;
+  status_statistics: StatusStatistics;
+  appointments: AdminAppointment[];
+}
+
 // Fetch admin appointments data
 export const getAdminAppointments = async (): Promise<AdminAppointmentsResponse> => {
   try {
@@ -148,6 +235,21 @@ export const getAdminAppointments = async (): Promise<AdminAppointmentsResponse>
   }
 };
 
+// Update doctor approval status
+export const adminApproveStatus = async (doctorId: number, action: string, reason: string): Promise<any> => {
+  try {
+    const response = await baseApi.post(ENDPOINTS.adminApproveStatus, {
+      doctor_id: doctorId,
+      action: action,
+      reason: reason
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating doctor status:", error);
+    throw error;
+  }
+};
+
 // Fetch admin dashboard data
 export const getAdminDashboard = async (): Promise<AdminDashboardResponse> => {
   try {
@@ -155,6 +257,43 @@ export const getAdminDashboard = async (): Promise<AdminDashboardResponse> => {
     return response.data;
   } catch (error) {
     console.error("Error fetching admin dashboard:", error);
+    throw error;
+  }
+};
+
+// Fetch admin patients data
+export const getAdminPatients = async (): Promise<AdminPatientsResponse> => {
+  try {
+    const response = await baseApi.get(ENDPOINTS.admin_manage_Patents);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching admin patients:", error);
+    throw error;
+  }
+};
+
+// Fetch all admin appointments
+export const getAdminAllAppointments = async (): Promise<AdminAllAppointmentsResponse> => {
+  try {
+    const response = await baseApi.get(ENDPOINTS.admin_get_all_apointments);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching all admin appointments:", error);
+    throw error;
+  }
+};
+
+// Update appointment status
+export const updateAppointmentStatus = async (appointmentId: number, status: string, notes?: string): Promise<any> => {
+  try {
+    const response = await baseApi.post(ENDPOINTS.admin_update_appointment_status, {
+      appointment_id: appointmentId,
+      status: status,
+      reason: notes || ""
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating appointment status:", error);
     throw error;
   }
 };

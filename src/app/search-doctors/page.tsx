@@ -2,501 +2,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { getDoctorsFromAssets } from "@/service/matchService";
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
-import img1 from "../../assets/img (1).png";
-import img2 from "../../assets/img (2).png";
-import img3 from "../../assets/img (3).png";
-import img4 from "../../assets/img (4).png";
-
-// Extended fake doctors data
-const EXTENDED_DOCTORS = [
-  {
-    _id: "doc_005",
-    name: "Dr. Sarah Mitchell",
-    specialization: "Mental Health Care",
-    profileImg: img1,
-    bio: "Psychiatrist specializing in anxiety and depression treatment.",
-    languages: ["English", "Spanish"],
-    vibeTags: ["Compassionate", "Supportive", "Patient"],
-    rating: 4.9,
-    reviewCount: 203,
-    experience: 12,
-    consultationFee: 95,
-    city: "New York",
-    chamberLocation: {
-      address: "Mental Health Center, Manhattan",
-      city: "New York",
-      zipCode: "10001",
-      googleMapsUrl: "https://maps.google.com/?q=mental+health+ny",
-    },
-    telehealth: true,
-    inPerson: true,
-  },
-  {
-    _id: "doc_006",
-    name: "Dr. James Anderson",
-    specialization: "Mental Health Care",
-    profileImg: img2,
-   
-    bio: "Clinical psychologist with expertise in cognitive behavioral therapy.",
-    languages: ["English"],
-    vibeTags: ["Expert", "Analytical", "Thorough"],
-    rating: 4.8,
-    reviewCount: 187,
-    experience: 15,
-    consultationFee: 100,
-    city: "Los Angeles",
-    chamberLocation: {
-      address: "Psychology Associates, LA",
-      city: "Los Angeles",
-      zipCode: "90001",
-      googleMapsUrl: "https://maps.google.com/?q=psychology+la",
-    },
-    telehealth: true,
-    inPerson: false,
-  },
-  {
-    _id: "doc_007",
-    name: "Dr. Emily Roberts",
-    specialization: "Mental Health Care",
-    profileImg: img3,
-   
-    bio: "Licensed therapist specializing in family and couples counseling.",
-    languages: ["English", "French"],
-    vibeTags: ["Empathetic", "Caring", "Supportive"],
-    rating: 4.7,
-    reviewCount: 156,
-    experience: 10,
-    consultationFee: 85,
-    city: "Chicago",
-    chamberLocation: {
-      address: "Wellness Center, Chicago",
-      city: "Chicago",
-      zipCode: "60601",
-      googleMapsUrl: "https://maps.google.com/?q=wellness+chicago",
-    },
-    telehealth: true,
-    inPerson: true,
-  },
-  {
-    _id: "doc_008",
-    name: "Dr. Lisa Chen",
-    specialization: "Acupuncture",
-    profileImg: img4,
-   
-    bio: "Licensed acupuncturist with 20 years of traditional medicine experience.",
-    languages: ["English", "Mandarin"],
-    vibeTags: ["Holistic", "Experienced", "Gentle"],
-    rating: 4.9,
-    reviewCount: 165,
-    experience: 20,
-    consultationFee: 75,
-    city: "San Francisco",
-    chamberLocation: {
-      address: "Acupuncture Clinic, SF",
-      city: "San Francisco",
-      zipCode: "94102",
-      googleMapsUrl: "https://maps.google.com/?q=acupuncture+sf",
-    },
-    telehealth: false,
-    inPerson: true,
-  },
-  {
-    _id: "doc_009",
-    name: "Dr. Michael Zhang",
-    specialization: "Acupuncture",
-    profileImg: img1,
-    
-    bio: "Traditional Chinese medicine practitioner specializing in pain management.",
-    languages: ["English", "Mandarin", "Cantonese"],
-    vibeTags: ["Traditional", "Skilled", "Holistic"],
-    rating: 4.8,
-    reviewCount: 142,
-    experience: 18,
-    consultationFee: 80,
-    city: "Seattle",
-    chamberLocation: {
-      address: "TCM Wellness, Seattle",
-      city: "Seattle",
-      zipCode: "98101",
-      googleMapsUrl: "https://maps.google.com/?q=tcm+seattle",
-    },
-    telehealth: false,
-    inPerson: true,
-  },
-  {
-    _id: "doc_010",
-    name: "Dr. Rachel Kim",
-    specialization: "Acupuncture",
-    profileImg: img2,
-   
-    bio: "Holistic acupuncturist focusing on wellness and preventive care.",
-    languages: ["English", "Korean"],
-    vibeTags: ["Holistic", "Preventive", "Caring"],
-    rating: 4.7,
-    reviewCount: 128,
-    experience: 12,
-    consultationFee: 70,
-    city: "Boston",
-    chamberLocation: {
-      address: "Holistic Health Center, Boston",
-      city: "Boston",
-      zipCode: "02101",
-      googleMapsUrl: "https://maps.google.com/?q=holistic+boston",
-    },
-    telehealth: false,
-    inPerson: true,
-  },
-  {
-    _id: "doc_011",
-    name: "Dr. David Thompson",
-    specialization: "Dental Care",
-    profileImg: img3,
-   
-    bio: "General dentist with expertise in cosmetic and restorative dentistry.",
-    languages: ["English"],
-    vibeTags: ["Skilled", "Friendly", "Professional"],
-    rating: 4.9,
-    reviewCount: 212,
-    experience: 20,
-    consultationFee: 120,
-    city: "Miami",
-    chamberLocation: {
-      address: "Dental Excellence, Miami",
-      city: "Miami",
-      zipCode: "33101",
-      googleMapsUrl: "https://maps.google.com/?q=dental+miami",
-    },
-    telehealth: false,
-    inPerson: true,
-  },
-  {
-    _id: "doc_012",
-    name: "Dr. Jennifer Lee",
-    specialization: "Dental Care",
-    profileImg: img4,
-   
-    bio: "Orthodontist specializing in braces and clear aligners.",
-    languages: ["English", "Vietnamese"],
-    vibeTags: ["Precise", "Modern", "Patient-focused"],
-    rating: 4.8,
-    reviewCount: 178,
-    experience: 14,
-    consultationFee: 150,
-    city: "Dallas",
-    chamberLocation: {
-      address: "Orthodontic Specialists, Dallas",
-      city: "Dallas",
-      zipCode: "75201",
-      googleMapsUrl: "https://maps.google.com/?q=orthodontics+dallas",
-    },
-    telehealth: false,
-    inPerson: true,
-  },
-  {
-    _id: "doc_013",
-    name: "Dr. Marcus Johnson",
-    specialization: "Mental Health Care",
-    profileImg: img1,
-    
-    bio: "Behavioral health specialist with focus on addiction recovery.",
-    languages: ["English"],
-    vibeTags: ["Supportive", "Dedicated", "Compassionate"],
-    rating: 4.8,
-    reviewCount: 195,
-    experience: 16,
-    consultationFee: 105,
-    city: "Denver",
-    chamberLocation: {
-      address: "Recovery Center, Denver",
-      city: "Denver",
-      zipCode: "80202",
-      googleMapsUrl: "https://maps.google.com/?q=recovery+denver",
-    },
-    telehealth: true,
-    inPerson: true,
-  },
-  {
-    _id: "doc_014",
-    name: "Dr. Patricia Wong",
-    specialization: "Mental Health Care",
-    profileImg: img2,
-   
-    bio: "Child and adolescent psychiatrist with specialized trauma training.",
-    languages: ["English", "Mandarin"],
-    vibeTags: ["Caring", "Specialized", "Patient"],
-    rating: 4.9,
-    reviewCount: 167,
-    experience: 13,
-    consultationFee: 110,
-    city: "Portland",
-    chamberLocation: {
-      address: "Child Wellness Center, Portland",
-      city: "Portland",
-      zipCode: "97201",
-      googleMapsUrl: "https://maps.google.com/?q=child+wellness+portland",
-    },
-    telehealth: true,
-    inPerson: true,
-  },
-  {
-    _id: "doc_015",
-    name: "Dr. Thomas Brown",
-    specialization: "Acupuncture",
-    profileImg: img3,
-   
-    bio: "Sports acupuncturist specializing in athletic injury recovery.",
-    languages: ["English"],
-    vibeTags: ["Athletic", "Skilled", "Effective"],
-    rating: 4.8,
-    reviewCount: 134,
-    experience: 14,
-    consultationFee: 85,
-    city: "Austin",
-    chamberLocation: {
-      address: "Sports Medicine Clinic, Austin",
-      city: "Austin",
-      zipCode: "78701",
-      googleMapsUrl: "https://maps.google.com/?q=sports+medicine+austin",
-    },
-    telehealth: false,
-    inPerson: true,
-  },
-  {
-    _id: "doc_016",
-    name: "Dr. Angela Martinez",
-    specialization: "Acupuncture",
-    profileImg: img4,
-   
-    bio: "Fertility acupuncturist helping couples with conception.",
-    languages: ["English", "Spanish"],
-    vibeTags: ["Specialized", "Compassionate", "Holistic"],
-    rating: 4.9,
-    reviewCount: 156,
-    experience: 11,
-    consultationFee: 90,
-    city: "Phoenix",
-    chamberLocation: {
-      address: "Fertility Wellness, Phoenix",
-      city: "Phoenix",
-      zipCode: "85001",
-      googleMapsUrl: "https://maps.google.com/?q=fertility+phoenix",
-    },
-    telehealth: false,
-    inPerson: true,
-  },
-  {
-    _id: "doc_017",
-    name: "Dr. Robert Garcia",
-    specialization: "Dental Care",
-    profileImg: img1,
-    
-    bio: "Periodontist specializing in gum disease and implants.",
-    languages: ["English", "Spanish"],
-    vibeTags: ["Expert", "Thorough", "Professional"],
-    rating: 4.8,
-    reviewCount: 189,
-    experience: 18,
-    consultationFee: 140,
-    city: "Houston",
-    chamberLocation: {
-      address: "Periodontal Specialists, Houston",
-      city: "Houston",
-      zipCode: "77001",
-      googleMapsUrl: "https://maps.google.com/?q=periodontal+houston",
-    },
-    telehealth: false,
-    inPerson: true,
-  },
-  {
-    _id: "doc_019",
-    name: "Dr. William Martinez",
-    specialization: "Cardiologist",
-    profileImg: img2,
-   
-    bio: "Interventional cardiologist specializing in heart disease treatment and prevention.",
-    languages: ["English", "Spanish"],
-    vibeTags: ["Expert", "Compassionate", "Thorough"],
-    rating: 4.9,
-    reviewCount: 198,
-    experience: 17,
-    consultationFee: 110,
-    city: "San Diego",
-    chamberLocation: {
-      address: "Cardiac Care Center, San Diego",
-      city: "San Diego",
-      zipCode: "92101",
-      googleMapsUrl: "https://maps.google.com/?q=cardiac+san+diego",
-    },
-    telehealth: true,
-    inPerson: true,
-  },
-  {
-    _id: "doc_020",
-    name: "Dr. Victoria Anderson",
-    specialization: "Cardiologist",
-    profileImg: img3,
-   
-    bio: "Women's heart health specialist with focus on cardiovascular disease in women.",
-    languages: ["English"],
-    vibeTags: ["Specialized", "Caring", "Knowledgeable"],
-    rating: 4.8,
-    reviewCount: 176,
-    experience: 14,
-    consultationFee: 105,
-    city: "Atlanta",
-    chamberLocation: {
-      address: "Women's Cardiac Health, Atlanta",
-      city: "Atlanta",
-      zipCode: "30303",
-      googleMapsUrl: "https://maps.google.com/?q=womens+cardiac+atlanta",
-    },
-    telehealth: true,
-    inPerson: true,
-  },
-  {
-    _id: "doc_021",
-    name: "Dr. James Wilson",
-    specialization: "Orthopedic Surgeon",
-    profileImg: img4,
-    
-    bio: "Sports medicine orthopedic surgeon specializing in knee and shoulder injuries.",
-    languages: ["English"],
-    vibeTags: ["Athletic", "Skilled", "Innovative"],
-    rating: 4.9,
-    reviewCount: 203,
-    experience: 16,
-    consultationFee: 130,
-    city: "Denver",
-    chamberLocation: {
-      address: "Sports Orthopedics, Denver",
-      city: "Denver",
-      zipCode: "80202",
-      googleMapsUrl: "https://maps.google.com/?q=sports+orthopedics+denver",
-    },
-    telehealth: false,
-    inPerson: true,
-  },
-  {
-    _id: "doc_022",
-    name: "Dr. Amanda Rodriguez",
-    specialization: "Orthopedic Surgeon",
-    profileImg: img1,
-   
-    bio: "Pediatric orthopedic surgeon treating children's bone and joint conditions.",
-    languages: ["English", "Spanish"],
-    vibeTags: ["Gentle", "Expert", "Patient"],
-    rating: 4.8,
-    reviewCount: 187,
-    experience: 13,
-    consultationFee: 125,
-    city: "Tampa",
-    chamberLocation: {
-      address: "Children's Orthopedics, Tampa",
-      city: "Tampa",
-      zipCode: "33602",
-      googleMapsUrl: "https://maps.google.com/?q=childrens+orthopedics+tampa",
-    },
-    telehealth: false,
-    inPerson: true,
-  },
-  {
-    _id: "doc_023",
-    name: "Dr. Robert Taylor",
-    specialization: "Family Medicine",
-    profileImg: img2,
-   
-    bio: "Family physician providing comprehensive care for all ages.",
-    languages: ["English"],
-    vibeTags: ["Caring", "Thorough", "Approachable"],
-    rating: 4.7,
-    reviewCount: 165,
-    experience: 11,
-    consultationFee: 85,
-    city: "Nashville",
-    chamberLocation: {
-      address: "Family Health Center, Nashville",
-      city: "Nashville",
-      zipCode: "37201",
-      googleMapsUrl: "https://maps.google.com/?q=family+health+nashville",
-    },
-    telehealth: true,
-    inPerson: true,
-  },
-  {
-    _id: "doc_024",
-    name: "Dr. Maria Santos",
-    specialization: "Family Medicine",
-    profileImg: img3,
-   
-    bio: "Bilingual family doctor specializing in preventive care and chronic disease management.",
-    languages: ["English", "Spanish"],
-    vibeTags: ["Bilingual", "Preventive", "Holistic"],
-    rating: 4.8,
-    reviewCount: 192,
-    experience: 9,
-    consultationFee: 80,
-    city: "San Antonio",
-    chamberLocation: {
-      address: "Community Health Clinic, San Antonio",
-      city: "San Antonio",
-      zipCode: "78201",
-      googleMapsUrl: "https://maps.google.com/?q=community+health+san+antonio",
-    },
-    telehealth: true,
-    inPerson: true,
-  },
-  {
-    _id: "doc_025",
-    name: "Dr. Christopher Lee",
-    specialization: "Neurologist",
-    profileImg: img4,
-    
-    bio: "Movement disorder specialist focusing on Parkinson's disease and tremors.",
-    languages: ["English", "Korean"],
-    vibeTags: ["Specialized", "Expert", "Compassionate"],
-    rating: 4.9,
-    reviewCount: 178,
-    experience: 15,
-    consultationFee: 115,
-    city: "Minneapolis",
-    chamberLocation: {
-      address: "Neurology Center, Minneapolis",
-      city: "Minneapolis",
-      zipCode: "55401",
-      googleMapsUrl: "https://maps.google.com/?q=neurology+minneapolis",
-    },
-    telehealth: true,
-    inPerson: true,
-  },
-  {
-    _id: "doc_026",
-    name: "Dr. Sophia Patel",
-    specialization: "Neurologist",
-    profileImg: img1,
-   
-    bio: "Headache and migraine specialist with advanced pain management techniques.",
-    languages: ["English", "Hindi"],
-    vibeTags: ["Empathetic", "Skilled", "Modern"],
-    rating: 4.8,
-    reviewCount: 156,
-    experience: 12,
-    consultationFee: 110,
-    city: "Charlotte",
-    chamberLocation: {
-      address: "Headache Clinic, Charlotte",
-      city: "Charlotte",
-      zipCode: "28201",
-      googleMapsUrl: "https://maps.google.com/?q=headache+clinic+charlotte",
-    },
-    telehealth: true,
-    inPerson: true,
-  },
-];
+import { getAllDoctors } from "@/service/doctorService";
+import { toast, Toaster } from "sonner";
 
 export default function SearchDoctors() {
   const router = useRouter();
@@ -505,15 +15,29 @@ export default function SearchDoctors() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load all doctors on component mount
-    const allDoctors = [...getDoctorsFromAssets(), ...EXTENDED_DOCTORS];
-    setDoctors(allDoctors);
-    setLoading(false);
+    fetchAllDoctors();
   }, []);
 
-  // Group doctors by specialization
+  const fetchAllDoctors = async () => {
+    try {
+      setLoading(true);
+      const response = await getAllDoctors();
+      if (response.success && response.doctors) {
+        setDoctors(response.doctors);
+      }
+    } catch (error: any) {
+      console.error("Error fetching doctors:", error);
+      toast.error("Failed to load doctors", {
+        description: "Please try again later.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Group doctors by specialty_name
   const groupedDoctors = doctors.reduce((acc: any, doctor: any) => {
-    const spec = doctor.specialization;
+    const spec = doctor.specialty_name || "Other";
     if (!acc[spec]) {
       acc[spec] = [];
     }
@@ -526,9 +50,9 @@ export default function SearchDoctors() {
     (acc: any, spec: string) => {
       const filtered = groupedDoctors[spec].filter(
         (doctor: any) =>
-          doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          doctor.specialization
-            .toLowerCase()
+          doctor.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          doctor.specialty_name
+            ?.toLowerCase()
             .includes(searchTerm.toLowerCase())
       );
       if (filtered.length > 0) {
@@ -549,8 +73,26 @@ export default function SearchDoctors() {
       Pediatrics: "👶",
       Psychiatry: "🧠",
       Oncology: "🏥",
+      "General Medicine": "⚕️",
+      "Mental Health Care": "🧠",
+      Acupuncture: "🧬",
+      "Dental Care": "🦷",
     };
     return icons[specialization] || "⚕️";
+  };
+
+  const getSpecializationDescription = (specialization: string) => {
+    const descriptions: any = {
+      Cardiologist: "Heart and cardiovascular specialists",
+      "Orthopedic Surgeon": "Bone and joint specialists",
+      "Family Medicine": "General healthcare providers",
+      Neurologist: "Brain and nervous system specialists",
+      "General Medicine": "Primary care physicians",
+      "Mental Health Care": "Psychiatrists and therapists",
+      Acupuncture: "Traditional Chinese medicine practitioners",
+      "Dental Care": "Oral health specialists",
+    };
+    return descriptions[specialization] || "Healthcare specialists";
   };
 
   if (loading) {
@@ -570,6 +112,7 @@ export default function SearchDoctors() {
 
   return (
     <>
+      <Toaster position="top-right" richColors />
       <Navigation />
       <div className="min-h-screen bg-[#2952a1]">
         {/* Header Section */}
@@ -634,14 +177,7 @@ export default function SearchDoctors() {
                       {specialization}
                     </h2>
                     <p className="text-sm text-gray-100">
-                      {specialization === "Cardiologist" &&
-                        "Heart and cardiovascular specialists"}
-                      {specialization === "Orthopedic Surgeon" &&
-                        "Bone and joint specialists"}
-                      {specialization === "Family Medicine" &&
-                        "General healthcare providers"}
-                      {specialization === "Neurologist" &&
-                        "Brain and nervous system specialists"}
+                      {getSpecializationDescription(specialization)}
                     </p>
                   </div>
                 </div>
@@ -650,26 +186,31 @@ export default function SearchDoctors() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                   {filteredGroupedDoctors[specialization].map((doctor: any) => (
                     <div
-                      key={doctor._id}
+                      key={doctor.id}
                       className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 p-6"
                     >
                       {/* Doctor Image and Name - Left Aligned */}
                       <div className="flex items-start gap-4 mb-4">
-                        <div className="w-20 h-20 rounded-full bg-linear-to-br from-blue-100 to-purple-100 flex items-center justify-center overflow-hidden shadow-md border-2 border-white flex-shrink-0 relative">
-                          <Image
-                            src={doctor.profileImg || img1}
-                            alt={doctor.name}
-                            fill
-                            className="object-cover rounded-full"
-                          />
+                        <div className="shrink-0 w-20 h-20">
+                          {doctor.profile_picture ? (
+                            <img
+                              src={doctor.profile_picture}
+                              alt={doctor.user_name}
+                              className="w-full h-full rounded-full object-cover border-2 border-white shadow-md"
+                            />
+                          ) : (
+                            <div className="w-full h-full rounded-full bg-linear-to-br from-blue-100 to-purple-100 flex items-center justify-center text-2xl font-bold text-blue-600 shadow-md border-2 border-white">
+                              {doctor.user_name?.split(' ').map((n: string) => n[0]).join('') || 'DR'}
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex-1">
                           <h3 className="text-lg font-bold text-gray-900 mb-1">
-                            {doctor.name}
+                            {doctor.user_name || 'Dr. Unknown'}
                           </h3>
                           <p className="text-sm text-gray-600 mb-2">
-                            {doctor.specialization}
+                            {doctor.specialty_name}
                           </p>
 
                           {/* Rating */}
@@ -678,7 +219,7 @@ export default function SearchDoctors() {
                               <span
                                 key={star}
                                 className={`text-sm ${
-                                  star <= Math.round(doctor.rating)
+                                  star <= Math.round(doctor.average_rating || 0)
                                     ? "text-yellow-400"
                                     : "text-gray-300"
                                 }`}
@@ -687,7 +228,7 @@ export default function SearchDoctors() {
                               </span>
                             ))}
                             <span className="text-xs text-gray-500 ml-1">
-                              ({doctor.reviewCount})
+                              ({doctor.total_ratings || 0})
                             </span>
                           </div>
                         </div>
@@ -700,28 +241,28 @@ export default function SearchDoctors() {
                             📍 {doctor.city}
                           </span>
                         )}
-                        {doctor.experience && (
+                        {doctor.years_of_experience && (
                           <span className="flex items-center gap-1">
-                            💼 {doctor.experience} years
+                            💼 {doctor.years_of_experience} years
                           </span>
                         )}
                       </div>
 
                       {/* Vibe Tags */}
                       <div className="flex flex-wrap gap-2 mb-4">
-                        {doctor.vibeTags?.slice(0, 3).map((tag: string) => (
+                        {doctor.vibe_tags?.slice(0, 3).map((tag: any) => (
                           <span
-                            key={tag}
+                            key={tag.id}
                             className="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700"
                           >
-                            {tag}
+                            {tag.name}
                           </span>
                         ))}
                       </div>
 
                       {/* Book Button */}
                       <button
-                        onClick={() => router.push(`/doctors/doc_001`)}
+                        onClick={() => router.push(`/doctors/${doctor.id}`)}
                         className="w-full bg-[#2952a1] text-white py-3 rounded-lg font-semibold hover:bg-[#1e3d7a] transition-all"
                       >
                         Book Appointment
