@@ -2,365 +2,318 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getAdminAppointments, Doctor, AdminAppointmentsResponse } from "@/service/adminService";
 
-// Static appointments data
-const STATIC_APPOINTMENTS = [
-  {
-    _id: "apt_001",
-    patientName: "John Doe",
-    patientEmail: "john.doe@example.com",
-    patientPhone: "+880 1712345678",
-    doctorName: "Dr. Sarah Johnson",
-    appointmentDate: "2026-01-20T10:00:00Z",
-    appointmentTime: "10:00 AM",
-    appointmentType: "in-person",
-    reason: "Regular checkup and blood pressure monitoring",
-    status: "pending",
-    createdAt: "2026-01-10T08:30:00Z",
+// Default stats for loading
+const DEFAULT_STATS = {
+  count: 0,
+  appointments: {
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    completed: 0,
+    total: 0
   },
-  {
-    _id: "apt_002",
-    patientName: "Jane Smith",
-    patientEmail: "jane.smith@example.com",
-    patientPhone: "+880 1823456789",
-    doctorName: "Dr. Michael Chen",
-    appointmentDate: "2026-01-18T14:30:00Z",
-    appointmentTime: "02:30 PM",
-    appointmentType: "virtual",
-    reason: "Follow-up consultation for knee pain",
-    status: "approved",
-    adminNotes: "Appointment confirmed. Virtual meeting link will be sent.",
-    createdAt: "2026-01-14T14:20:00Z",
-  },
-  {
-    _id: "apt_003",
-    patientName: "Robert Brown",
-    patientEmail: "robert.brown@example.com",
-    patientPhone: "+880 1934567890",
-    doctorName: "Dr. Emily Thompson",
-    appointmentDate: "2026-01-22T11:00:00Z",
-    appointmentTime: "11:00 AM",
-    appointmentType: "in-person",
-    reason: "Annual physical examination",
-    status: "approved",
-    adminNotes: "Please bring your previous medical records.",
-    createdAt: "2026-01-12T10:15:00Z",
-  },
-  {
-    _id: "apt_004",
-    patientName: "Lisa Anderson",
-    patientEmail: "lisa.anderson@example.com",
-    patientPhone: "+880 1745678901",
-    doctorName: "Dr. David Kumar",
-    appointmentDate: "2026-01-16T09:00:00Z",
-    appointmentTime: "09:00 AM",
-    appointmentType: "virtual",
-    reason: "Consultation for recurring headaches",
-    status: "rejected",
-    adminNotes: "Doctor not available on this date. Please reschedule.",
-    createdAt: "2026-01-13T16:45:00Z",
-  },
-  {
-    _id: "apt_005",
-    patientName: "Michael Wilson",
-    patientEmail: "michael.wilson@example.com",
-    patientPhone: "+880 1856789012",
-    doctorName: "Dr. Sarah Johnson",
-    appointmentDate: "2026-01-25T15:00:00Z",
-    appointmentTime: "03:00 PM",
-    appointmentType: "in-person",
-    reason: "Cardiology consultation for chest discomfort",
-    status: "pending",
-    createdAt: "2026-01-15T09:00:00Z",
-  },
-];
+  doctors: []
+};
 
 export default function AdminAppointments() {
-  const [appointments, setAppointments] = useState<any[]>(STATIC_APPOINTMENTS);
-  const [filteredAppointments, setFilteredAppointments] = useState<any[]>(STATIC_APPOINTMENTS);
+  const [data, setData] = useState<AdminAppointmentsResponse>(DEFAULT_STATS as AdminAppointmentsResponse);
+  const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
   const [filter, setFilter] = useState("all");
-  const [showModal, setShowModal] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
-  const [adminNotes, setAdminNotes] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchAppointmentsData();
+  }, []);
 
   useEffect(() => {
     if (filter === "all") {
-      setFilteredAppointments(appointments);
+      setFilteredDoctors(data.doctors);
     } else {
-      setFilteredAppointments(appointments.filter((a) => a.status === filter));
+      setFilteredDoctors(data.doctors.filter((doctor) => {
+        switch(filter) {
+          case "verified":
+            return doctor.is_verified;
+          case "pending":
+            return !doctor.is_verified && doctor.verification_status === "pending";
+          case "active":
+            return doctor.is_active;
+          default:
+            return true;
+        }
+      }));
     }
-  }, [filter, appointments]);
+  }, [filter, data.doctors]);
 
-  const handleAppointmentAction = (
-    appointmentId: string,
-    status: "approved" | "rejected"
-  ) => {
-    // Update appointment status locally
-    const updatedAppointments = appointments.map((apt) =>
-      apt._id === appointmentId
-        ? { ...apt, status, adminNotes: adminNotes || apt.adminNotes }
-        : apt
+  const fetchAppointmentsData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await getAdminAppointments();
+      setData(response);
+    } catch (err) {
+      console.error("Error fetching appointments data:", err);
+      setError("Failed to load appointments data. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getVerificationBadge = (doctor: Doctor) => {
+    if (doctor.is_verified) {
+      return "bg-green-100 text-green-700";
+    } else if (doctor.verification_status === "pending") {
+      return "bg-yellow-100 text-yellow-700";
+    } else {
+      return "bg-red-100 text-red-700";
+    }
+  };
+
+  const getVerificationText = (doctor: Doctor) => {
+    if (doctor.is_verified) {
+      return "Verified";
+    } else if (doctor.verification_status === "pending") {
+      return "Pending";
+    } else {
+      return "Rejected";
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="text-gray-500 mb-4">Loading appointments data...</div>
+        </div>
+      </div>
     );
-    setAppointments(updatedAppointments);
-    alert(`Appointment ${status} successfully!`);
-    setShowModal(false);
-    setSelectedAppointment(null);
-    setAdminNotes("");
-  };
+  }
 
-  const getStatusBadge = (status: string) => {
-    const styles = {
-      pending: "bg-yellow-100 text-yellow-700",
-      approved: "bg-green-100 text-green-700",
-      rejected: "bg-red-100 text-red-700",
-      completed: "bg-[#ebe2cd] text-[#2952a1]",
-      cancelled: "bg-gray-100 text-gray-700",
-    };
-    return styles[status as keyof typeof styles] || "bg-gray-100 text-gray-700";
-  };
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={fetchAppointmentsData}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      {/* Filters */}
-      <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100 mb-6">
-        <div className="flex items-center space-x-4">
-          <span className="text-sm font-semibold text-gray-700">Filter:</span>
-          {["all", "pending", "approved", "rejected", "completed"].map(
-            (status) => (
-              <button
-                key={status}
-                onClick={() => setFilter(status)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  filter === status
-                    ? "bg-[#2952a1] text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-                {status !== "all" && (
-                  <span className="ml-2 text-xs">
-                    ({appointments.filter((a) => a.status === status).length})
-                  </span>
-                )}
-              </button>
-            )
-          )}
+    <div className="p-8 bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-[#1F2937] mb-2">
+          Doctor Management
+        </h1>
+        <p className="text-gray-600">
+          Manage doctors, appointments, and verification status
+        </p>
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <span className="text-2xl">👨‍⚕️</span>
+            </div>
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-1">{data.count}</h3>
+          <p className="text-gray-600">Total Doctors</p>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <span className="text-2xl">⏳</span>
+            </div>
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-1">{data.appointments.pending}</h3>
+          <p className="text-gray-600">Pending Appointments</p>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <span className="text-2xl">✅</span>
+            </div>
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-1">{data.appointments.approved}</h3>
+          <p className="text-gray-600">Approved Appointments</p>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+              <span className="text-2xl">❌</span>
+            </div>
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-1">{data.appointments.rejected}</h3>
+          <p className="text-gray-600">Rejected Appointments</p>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <span className="text-2xl">📋</span>
+            </div>
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-1">{data.appointments.total}</h3>
+          <p className="text-gray-600">Total Appointments</p>
         </div>
       </div>
 
-      {/* Appointments List */}
-      <div className="  ">
-        <div className="p-6 bg-white border-b mb-6 border-gray-200 rounded-2xl">
-          <h2 className="text-xl font-bold text-gray-900">
-            All Appointments ({filteredAppointments.length})
-          </h2>
+      {/* Filter Tabs */}
+      <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100 mb-8">
+        <div className="flex flex-wrap gap-4">
+          <button
+            onClick={() => setFilter("all")}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+              filter === "all"
+                ? "bg-[#0052CC] text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            All Doctors ({data.count})
+          </button>
+          <button
+            onClick={() => setFilter("verified")}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+              filter === "verified"
+                ? "bg-[#0052CC] text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            Verified ({data.doctors.filter(d => d.is_verified).length})
+          </button>
+          <button
+            onClick={() => setFilter("pending")}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+              filter === "pending"
+                ? "bg-[#0052CC] text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            Pending ({data.doctors.filter(d => !d.is_verified && d.verification_status === 'pending').length})
+          </button>
+          <button
+            onClick={() => setFilter("active")}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+              filter === "active"
+                ? "bg-[#0052CC] text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            Active ({data.doctors.filter(d => d.is_active).length})
+          </button>
+        </div>
+      </div>
+
+      {/* Doctors List */}
+      <div className="bg-white rounded-xl shadow-md border border-gray-100">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-xl font-bold text-[#1F2937]">Doctors Management</h2>
         </div>
 
-        {filteredAppointments.length === 0 ? (
+        {filteredDoctors.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">No appointments found</p>
+            <p className="text-gray-500 font-medium">No doctors found</p>
           </div>
         ) : (
-          <div className=" space-y-4">
-            {filteredAppointments.map((appointment) => (
-              <div
-                key={appointment._id}
-                className="p-6 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors border border-gray-200"
-              >
+          <div className="divide-y divide-gray-200">
+            {filteredDoctors.map((doctor) => (
+              <div key={doctor.id} className="p-6 hover:bg-gray-50 transition-colors">
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-lg font-bold text-gray-900">
-                        {appointment.patientName}
-                      </h3>
-                      <span className="text-gray-400">→</span>
-                      <h3 className="text-lg font-semibold text-[#2952a1]">
-                        {appointment.doctorName}
-                      </h3>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(
-                          appointment.status
-                        )}`}
-                      >
-                        {appointment.status}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                      <span>
-                        📅{" "}
-                        {new Date(
-                          appointment.appointmentDate
-                        ).toLocaleDateString("en-US", {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </span>
-                      <span>•</span>
-                      <span>🕐 {appointment.appointmentTime}</span>
-                      <span>•</span>
-                      <span>
-                        {appointment.appointmentType === "virtual"
-                          ? "💻 Virtual"
-                          : "🏥 In-Person"}
-                      </span>
-                    </div>
-
-                    <div className="bg-gray-50 rounded-lg p-3 mb-3">
-                      <p className="text-sm font-semibold text-gray-700 mb-1">
-                        Reason:
-                      </p>
-                      <p className="text-sm text-gray-700">
-                        {appointment.reason}
-                      </p>
-                    </div>
-
-                    {appointment.adminNotes && (
-                      <div className="bg-[#ebe2cd]/30 rounded-lg p-3 mb-3">
-                        <p className="text-sm font-semibold text-[#2952a1] mb-1">
-                          Admin Notes:
-                        </p>
-                        <p className="text-sm text-[#2952a1]">
-                          {appointment.adminNotes}
-                        </p>
+                  <div className="flex items-start space-x-4">
+                    <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-sm bg-gray-100">
+                      {doctor.profile_picture ? (
+                        <img
+                          src={doctor.profile_picture}
+                          alt={doctor.user_name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <div className={`${doctor.profile_picture ? 'hidden' : ''} w-full h-full flex items-center justify-center bg-gray-200 text-gray-500 text-xs font-bold`}>
+                        {doctor.user_name.charAt(0).toUpperCase()}
                       </div>
-                    )}
+                    </div>
 
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <span>📧 {appointment.patientEmail}</span>
-                      {appointment.patientPhone && (
-                        <>
-                          <span>•</span>
-                          <span>📱 {appointment.patientPhone}</span>
-                        </>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <h3 className="text-lg font-bold text-[#1F2937]">{doctor.user_name}</h3>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            getVerificationBadge(doctor)
+                          }`}
+                        >
+                          {getVerificationText(doctor)}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1 text-sm text-gray-600">
+                        <p>📧 {doctor.user_email}</p>
+                        {doctor.specialty_name && <p>🏥 {doctor.specialty_name}</p>}
+                        <p>💼 {doctor.years_of_experience} years experience</p>
+                        {doctor.city && <p>📍 {doctor.city}</p>}
+                        <p>🏥 Care Mode: {doctor.care_mode}</p>
+                        <p>⭐ Rating: {doctor.average_rating.toFixed(1)} ({doctor.total_ratings} reviews)</p>
+                      </div>
+
+                      {doctor.vibe_tags && doctor.vibe_tags.length > 0 && (
+                        <div className="mt-3">
+                          <div className="flex flex-wrap gap-2">
+                            {doctor.vibe_tags.map((tag) => (
+                              <span
+                                key={tag.id}
+                                className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                              >
+                                {tag.name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
 
-                  {appointment.status === "pending" && (
-                    <div className="flex gap-2 ml-4">
-                      <button
-                        onClick={() => {
-                          setSelectedAppointment(appointment);
-                          setShowModal(true);
-                        }}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
-                      >
-                        ✅ Approve
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (
-                            confirm(
-                              "Are you sure you want to reject this appointment?"
-                            )
-                          ) {
-                            handleAppointmentAction(
-                              appointment._id,
-                              "rejected"
-                            );
-                          }
-                        }}
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
-                      >
-                        ❌ Reject
-                      </button>
+                  <div className="flex flex-col space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <span className={`w-3 h-3 rounded-full ${
+                        doctor.is_active ? 'bg-green-500' : 'bg-red-500'
+                      }`}></span>
+                      <span className="text-sm text-gray-600">
+                        {doctor.is_active ? 'Active' : 'Inactive'}
+                      </span>
                     </div>
-                  )}
+                    <div className="flex items-center space-x-2">
+                      <span className={`w-3 h-3 rounded-full ${
+                        doctor.is_accepting_patients ? 'bg-green-500' : 'bg-orange-500'
+                      }`}></span>
+                      <span className="text-sm text-gray-600">
+                        {doctor.is_accepting_patients ? 'Accepting Patients' : 'Not Accepting'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
-
-      {/* Approval Modal */}
-      {showModal && selectedAppointment && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-2xl w-full">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Approve Appointment
-            </h2>
-
-            <div className="bg-[#ebe2cd]/30 rounded-xl p-6 mb-6">
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Patient</p>
-                  <p className="font-bold text-gray-900">
-                    {selectedAppointment.patientName}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {selectedAppointment.patientEmail}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Doctor</p>
-                  <p className="font-bold text-gray-900">
-                    {selectedAppointment.doctorName}
-                  </p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Date & Time</p>
-                  <p className="font-semibold text-gray-900">
-                    {new Date(
-                      selectedAppointment.appointmentDate
-                    ).toLocaleDateString()}
-                  </p>
-                  <p className="text-sm text-gray-700">
-                    {selectedAppointment.appointmentTime}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Type</p>
-                  <p className="font-semibold text-gray-900">
-                    {selectedAppointment.appointmentType === "virtual"
-                      ? "💻 Virtual"
-                      : "🏥 In-Person"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Admin Notes (Optional)
-              </label>
-              <textarea
-                value={adminNotes}
-                onChange={(e) => setAdminNotes(e.target.value)}
-                rows={3}
-                placeholder="Add any notes for the patient or doctor..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() =>
-                  handleAppointmentAction(selectedAppointment._id, "approved")
-                }
-                className="flex-1 bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition-all"
-              >
-                ✅ Approve Appointment
-              </button>
-              <button
-                onClick={() => {
-                  setShowModal(false);
-                  setSelectedAppointment(null);
-                  setAdminNotes("");
-                }}
-                className="px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

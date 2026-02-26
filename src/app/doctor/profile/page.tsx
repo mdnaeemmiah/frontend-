@@ -4,6 +4,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import baseApi from "@/api/baseAPi";
+import { ENDPOINTS } from "@/api/endPoints";
 
 const specializations = [
   "Cardiology",
@@ -87,6 +89,17 @@ interface AvailabilitySlot {
   adminNotes?: string;
 }
 
+// Convert 24h "HH:MM:SS" → 12h "HH:MM AM/PM" (for displaying backend times)
+const convertTo12h = (time24: string): string => {
+  if (!time24) return time24;
+  const parts = time24.split(":");
+  const h = parseInt(parts[0]);
+  const minutes = parts[1] || "00";
+  const period = h >= 12 ? "PM" : "AM";
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${String(h12).padStart(2, "0")}:${minutes} ${period}`;
+};
+
 export default function DoctorProfile() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -94,6 +107,8 @@ export default function DoctorProfile() {
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string>("");
+  const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState<string>("");
 
   const [availabilitySlots, setAvailabilitySlots] = useState<
     AvailabilitySlot[]
@@ -105,89 +120,215 @@ export default function DoctorProfile() {
   });
 
   const [formData, setFormData] = useState({
-    name: "",
+    // Basic Information
+    full_name: "",
     email: "",
     phone: "",
     address: "",
     city: "",
-    zipCode: "",
-    chamberLocation: {
-      address: "",
-      city: "",
-      zipCode: "",
-      coordinates: {
-        type: "Point" as const,
-        coordinates: [0, 0] as [number, number],
-      },
-      googleMapsUrl: "",
-    },
+    zip_code: "",
+    profile_picture: "",
+    
+    // Chamber Location
+    chamber_address: "",
+    chamber_city: "",
+    google_maps_url: "",
+    
+    // Professional Information
     specialization: "",
-    experience: "",
+    years_of_experience: 12,
     qualification: "",
+    consultation_fee: 0,
     bio: "",
-    languages: [] as string[],
-    insuranceAccepted: [] as string[],
-    vibeTags: [] as string[],
-    communicationStyle: "warm-empathetic" as any,
-    consultationFee: "",
-    telehealth: false,
-    inPerson: false,
-    acceptsNewPatients: true,
-    introVideo: "",
+    
+    // Languages and Communication
+    languages_spoken: [] as string[],
+    vibe_tags: [] as string[],
+    communication_style: "warm_and_empathetic",
+    
+    // Care Options
+    offer_telehealth: false,
+    offer_in_person: false,
+    accepting_new_patients: true,
+    
+    // Intro Video
+    video_url: "",
+    upload_status: "pending",
   });
 
   const [profileUpdateRequest, setProfileUpdateRequest] = useState<any>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    fetchProfile();
+    setMounted(true);
   }, []);
 
-  const fetchProfile = async () => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      const response = await fetch(
-        `http://localhost:5000/api/user/me`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      const result = await response.json();
-      if (result.success) {
-        const doctor = result.data;
-        setFormData({
-          name: doctor.name || "",
-          email: doctor.email || "",
-          phone: doctor.phone || "",
-          address: doctor.address || "",
-          city: doctor.city || "",
-          zipCode: doctor.zipCode || "",
-          chamberLocation: doctor.chamberLocation || {
-            address: "",
-            city: "",
-            zipCode: "",
-            coordinates: { type: "Point", coordinates: [0, 0] },
-            googleMapsUrl: "",
-          },
-          specialization: doctor.specialization || "",
-          experience: doctor.experience?.toString() || "",
-          qualification: doctor.qualification || "",
-          bio: doctor.bio || "",
-          languages: doctor.languages || [],
-          insuranceAccepted: doctor.insuranceAccepted || [],
-          vibeTags: doctor.vibeTags || [],
-          communicationStyle: doctor.communicationStyle || "warm-empathetic",
-          consultationFee: doctor.consultationFee?.toString() || "",
-          telehealth: doctor.telehealth || false,
-          inPerson: doctor.inPerson || false,
-          acceptsNewPatients: doctor.acceptsNewPatients ?? true,
-          introVideo: doctor.introVideo || "",
-        });
-
-        if (doctor.introVideo) setVideoPreview(doctor.introVideo);
-        if (doctor.availabilitySlots)
-          setAvailabilitySlots(doctor.availabilitySlots);
-        if (doctor.profileUpdateRequest)
-          setProfileUpdateRequest(doctor.profileUpdateRequest);
+  useEffect(() => {
+    if (mounted) {
+      const doctorId = localStorage.getItem("user_id") || localStorage.getItem("doctor_id");
+      if (doctorId) {
+        fetchProfile(doctorId);
+      } else {
+        setLoading(false);
+        console.error("No doctor ID found in localStorage");
       }
+    }
+  }, [mounted]);
+
+  // Maps the flat GET /doctors/profiles/{id}/ response
+  const applyGetProfileData = (data: any) => {
+    // Check if response has nested 'data' structure
+    const profileData = data.data || data;
+    
+    // Handle nested structure from API
+    const basic = profileData.basic_information || {};
+    const chamber = profileData.chamber_location || {};
+    const professional = profileData.professional_information || {};
+    const introVideo = profileData.intro_video || {};
+    const availability = profileData.availability_schedule || [];
+    const langTags = profileData.languages_tags || {};
+    const careOptions = langTags.care_options || {};
+
+    // Parse vibe_tags: can be array of strings or objects
+    const vibeTagsArray: string[] = (langTags.vibe_tags || []).flatMap((t: any) => {
+      const raw = typeof t === "string" ? t : t.name || "";
+      return raw.split(",").map((s: string) => s.trim()).filter(Boolean);
+    });
+
+    // Languages: array of strings or objects
+    const languagesArray: string[] = (langTags.languages_spoken || []).map((l: any) =>
+      typeof l === "string" ? l : l.name || ""
+    ).filter(Boolean);
+
+    setFormData({
+      full_name: basic.full_name || "",
+      email: basic.email || "",
+      phone: basic.phone || "",
+      address: basic.address || "",
+      city: basic.city || "",
+      zip_code: basic.zip_code || "",
+      profile_picture: basic.profile_picture || "",
+
+      chamber_address: chamber.chamber_address || "",
+      chamber_city: chamber.city || "",
+      google_maps_url: chamber.google_maps_url || "",
+
+      specialization: professional.specialization || "",
+      years_of_experience: professional.years_of_experience || 0,
+      qualification: professional.qualification || "",
+      consultation_fee: professional.consultation_fee || 0,
+      bio: professional.bio || "",
+
+      languages_spoken: languagesArray,
+      vibe_tags: vibeTagsArray,
+      communication_style: langTags.communication_style || "warm_and_empathetic",
+
+      offer_telehealth: careOptions.offer_telehealth ?? false,
+      offer_in_person: careOptions.offer_in_person ?? false,
+      accepting_new_patients: careOptions.accepting_new_patients ?? true,
+
+      video_url: introVideo.video_url || "",
+      upload_status: introVideo.upload_status || "pending",
+    });
+
+    if (introVideo.video_url) setVideoPreview(introVideo.video_url);
+    if (basic.profile_picture) setProfilePicturePreview(basic.profile_picture);
+
+    // Map availability array from GET response
+    if (availability.length > 0) {
+      const mapped: AvailabilitySlot[] = availability.map((slot: any, i: number) => {
+        const slotDate = new Date(slot.date);
+        return {
+          id: slot.id?.toString() || `${Date.now()}-${i}`,
+          date: slot.date,
+          dayOfWeek: slotDate.toLocaleDateString("en-US", { weekday: "long" }),
+          startTime: convertTo12h(slot.start_time),
+          endTime: convertTo12h(slot.end_time),
+          status: slot.status || "pending",
+          adminNotes: slot.admin_notes || "",
+        };
+      });
+      setAvailabilitySlots(mapped);
+    }
+  };
+
+  // Maps the nested UPDATE response (response.data.data)
+  const applyProfileData = (data: any) => {
+    const basic = data.basic_information || {};
+    const chamber = data.chamber_location || {};
+    const professional = data.professional_information || {};
+    const langTags = data.languages_tags || {};
+    const careOptions = langTags.care_options || {};
+    const introVideo = data.intro_video || {};
+    const availability = data.availability_schedule || [];
+
+    // vibe_tags: array of strings, may be comma-separated within each entry
+    const vibeTagsArray: string[] = (langTags.vibe_tags || []).flatMap((t: any) => {
+      const raw = typeof t === "string" ? t : t.name || "";
+      return raw.split(",").map((s: string) => s.trim().replace(/^"|"$/g, "")).filter(Boolean);
+    });
+
+    // availability_schedule: backend returns 24h "HH:MM:SS" → convert to 12h for display
+    const mappedAvailability: AvailabilitySlot[] = availability.map((slot: any, i: number) => {
+      const slotDate = new Date(slot.date);
+      return {
+        id: slot.id?.toString() || `${Date.now()}-${i}`,
+        date: slot.date,
+        dayOfWeek: slotDate.toLocaleDateString("en-US", { weekday: "long" }),
+        startTime: convertTo12h(slot.start_time),
+        endTime: convertTo12h(slot.end_time),
+        status: slot.status || "pending",
+        adminNotes: slot.admin_notes || "",
+      };
+    });
+
+    setFormData({
+      full_name: basic.full_name || "",
+      email: basic.email || "",
+      phone: basic.phone || "",
+      address: basic.address || "",
+      city: basic.city || "",
+      zip_code: basic.zip_code || "",
+      profile_picture: basic.profile_picture || "",
+
+      chamber_address: chamber.chamber_address || "",
+      chamber_city: chamber.city || "",
+      google_maps_url: chamber.google_maps_url || "",
+
+      specialization: professional.specialization || "",
+      years_of_experience: professional.years_of_experience || 0,
+      qualification: professional.qualification || "",
+      consultation_fee: professional.consultation_fee || 0,
+      bio: professional.bio || "",
+
+      languages_spoken: Array.isArray(langTags.languages_spoken) ? langTags.languages_spoken : [],
+      vibe_tags: vibeTagsArray,
+      communication_style: langTags.communication_style || "warm_and_empathetic",
+
+      offer_telehealth: careOptions.offer_telehealth ?? false,
+      offer_in_person: careOptions.offer_in_person ?? false,
+      accepting_new_patients: careOptions.accepting_new_patients ?? true,
+
+      video_url: introVideo.video_url || "",
+      upload_status: introVideo.upload_status || "pending",
+    });
+
+    if (introVideo.video_url) setVideoPreview(introVideo.video_url);
+    if (basic.profile_picture) setProfilePicturePreview(basic.profile_picture);
+    if (mappedAvailability.length > 0) setAvailabilitySlots(mappedAvailability);
+  };
+
+  const fetchProfile = async (doctorId?: string) => {
+    try {
+      const id = doctorId || localStorage.getItem("user_id") || localStorage.getItem("doctor_id");
+      if (!id) {
+        console.error("No doctor ID available");
+        setLoading(false);
+        return;
+      }
+      const response = await baseApi.get(`${ENDPOINTS.get_doctor_profile}${id}/`);
+      // GET response is flat; use applyGetProfileData
+      applyGetProfileData(response.data);
     } catch (error) {
       console.error("Error fetching profile:", error);
     } finally {
@@ -211,41 +352,6 @@ export default function DoctorProfile() {
     }
   };
 
-  const handleVideoUpload = async () => {
-    if (!videoFile) {
-      alert("Please select a video file");
-      return;
-    }
-    setUploadingVideo(true);
-    try {
-      const token = localStorage.getItem("accessToken");
-      const formData = new FormData();
-      formData.append("video", videoFile);
-
-      const response = await fetch(
-        `http://localhost:5000/api/doctor/my-intro-video`,
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        }
-      );
-
-      const result = await response.json();
-      if (result.success) {
-        alert("Video uploaded successfully!");
-        setVideoFile(null);
-        fetchProfile();
-      } else {
-        alert(result.message || "Failed to upload video");
-      }
-    } catch (error) {
-      console.error("Error uploading video:", error);
-      alert("Failed to upload video");
-    } finally {
-      setUploadingVideo(false);
-    }
-  };
 
   const addAvailabilitySlot = () => {
     if (!newSlot.date) {
@@ -289,21 +395,10 @@ export default function DoctorProfile() {
 
   const handleGoogleMapsUrlChange = (url: string) => {
     const coordinates = extractCoordinatesFromGoogleMaps(url);
-    if (coordinates) {
-      setFormData({
-        ...formData,
-        chamberLocation: {
-          ...formData.chamberLocation,
-          googleMapsUrl: url,
-          coordinates: { type: "Point", coordinates },
-        },
-      });
-    } else {
-      setFormData({
-        ...formData,
-        chamberLocation: { ...formData.chamberLocation, googleMapsUrl: url },
-      });
-    }
+    setFormData({
+      ...formData,
+      google_maps_url: url,
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -311,40 +406,95 @@ export default function DoctorProfile() {
     setSaving(true);
 
     try {
-      const token = localStorage.getItem("accessToken");
-      const response = await fetch(
-        `http://localhost:5000/api/doctor/my-profile`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            ...formData,
-            experience: formData.experience
-              ? parseInt(formData.experience)
-              : undefined,
-            consultationFee: formData.consultationFee
-              ? parseFloat(formData.consultationFee)
-              : undefined,
-            availabilitySlots,
-          }),
-        }
-      );
+      const doctorId = localStorage.getItem("user_id");
 
-      const result = await response.json();
-      if (result.success) {
-        alert(
-          "Profile update request submitted successfully! Waiting for admin approval."
+      // Check if we have files to upload
+      const hasFiles = profilePictureFile || videoFile;
+
+      // Build JSON payload for all non-file data (nested structure)
+      const jsonPayload: Record<string, any> = {
+        basic_info: {
+          full_name: formData.full_name,
+          email: formData.email,
+          phone: formData.phone,
+          city: formData.city,
+          zip_code: formData.zip_code,
+          address: formData.address,
+        },
+        chamber_location: {
+          google_maps_url: formData.google_maps_url,
+          chamber_address: formData.chamber_address,
+          city: formData.chamber_city,
+        },
+        professional_info: {
+          specialization: formData.specialization,
+          years_of_experience: String(formData.years_of_experience),
+          qualification: formData.qualification,
+          consultation_fee: String(formData.consultation_fee),
+          bio: formData.bio,
+        },
+        availability_schedule: availabilitySlots.map((slot) => ({
+          date: slot.date,
+          start_time: slot.startTime,
+          end_time: slot.endTime,
+        })),
+        preferences: {
+          languages_spoken: formData.languages_spoken,
+          vibe_tags: formData.vibe_tags,
+          communication_style: formData.communication_style,
+          care_options: {
+            offer_telehealth: formData.offer_telehealth,
+            offer_in_person: formData.offer_in_person,
+            accepting_new_patients: formData.accepting_new_patients,
+          },
+        },
+      };
+
+      let response;
+
+      if (hasFiles) {
+        // Use FormData: files as form-data, other data as JSON string in "data" field
+        const fd = new FormData();
+        
+        // Append JSON data as a string
+        fd.append("data", JSON.stringify(jsonPayload));
+        
+        // Append files
+        if (profilePictureFile) {
+          fd.append("profile_picture", profilePictureFile);
+        }
+        if (videoFile) {
+          fd.append("intro_video", videoFile);
+        }
+
+        // axios sets multipart/form-data boundary automatically
+        response = await baseApi.put(
+          `${ENDPOINTS.doctor_profile}${doctorId}/update/`,
+          fd
         );
-        fetchProfile();
       } else {
-        alert(result.message || "Failed to update profile");
+        // No files — send pure JSON
+        response = await baseApi.put(
+          `${ENDPOINTS.doctor_profile}${doctorId}/update/`,
+          jsonPayload,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
       }
-    } catch (error) {
+
+      if (response.data.status === "success") {
+        alert(response.data.message || "Profile updated successfully!");
+        // Re-fetch from GET to display the correct saved values
+        await fetchProfile();
+      } else {
+        alert(response.data.message || "Failed to update profile");
+      }
+    } catch (error: any) {
       console.error("Error updating profile:", error);
-      alert("Failed to update profile");
+      alert(error.response?.data?.message || "Failed to update profile");
     } finally {
       setSaving(false);
     }
@@ -455,6 +605,39 @@ export default function DoctorProfile() {
           <h2 className="text-xl font-bold text-gray-900 mb-4">
             Basic Information
           </h2>
+          {/* Profile Picture */}
+          <div className="flex items-center gap-6 mb-6">
+            <div className="relative">
+              {profilePicturePreview ? (
+                <img
+                  src={profilePicturePreview}
+                  alt="Profile"
+                  className="w-24 h-24 rounded-full object-cover border-4 border-green-200"
+                />
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center border-4 border-green-200">
+                  <span className="text-3xl text-gray-400">👤</span>
+                </div>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Profile Picture</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setProfilePictureFile(file);
+                    setProfilePicturePreview(URL.createObjectURL(file));
+                  }
+                }}
+                className="text-sm text-gray-600 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
+              />
+              <p className="text-xs text-gray-500 mt-1">JPG, PNG — max 5MB</p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -462,9 +645,9 @@ export default function DoctorProfile() {
               </label>
               <input
                 type="text"
-                value={formData.name}
+                value={formData.full_name}
                 onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
+                  setFormData({ ...formData, full_name: e.target.value })
                 }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                 required
@@ -513,9 +696,9 @@ export default function DoctorProfile() {
               </label>
               <input
                 type="text"
-                value={formData.zipCode}
+                value={formData.zip_code}
                 onChange={(e) =>
-                  setFormData({ ...formData, zipCode: e.target.value })
+                  setFormData({ ...formData, zip_code: e.target.value })
                 }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
               />
@@ -548,23 +731,11 @@ export default function DoctorProfile() {
               </label>
               <input
                 type="url"
-                value={formData.chamberLocation.googleMapsUrl}
+                value={formData.google_maps_url}
                 onChange={(e) => handleGoogleMapsUrlChange(e.target.value)}
                 placeholder="https://maps.google.com/..."
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
               />
-              {formData.chamberLocation.coordinates.coordinates[0] !== 0 && (
-                <p className="mt-2 text-sm text-green-600">
-                  ✓ Coordinates:{" "}
-                  {formData.chamberLocation.coordinates.coordinates[1].toFixed(
-                    6
-                  )}
-                  ,{" "}
-                  {formData.chamberLocation.coordinates.coordinates[0].toFixed(
-                    6
-                  )}
-                </p>
-              )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2">
@@ -573,14 +744,11 @@ export default function DoctorProfile() {
                 </label>
                 <input
                   type="text"
-                  value={formData.chamberLocation.address}
+                  value={formData.chamber_address}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      chamberLocation: {
-                        ...formData.chamberLocation,
-                        address: e.target.value,
-                      },
+                      chamber_address: e.target.value,
                     })
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
@@ -592,14 +760,11 @@ export default function DoctorProfile() {
                 </label>
                 <input
                   type="text"
-                  value={formData.chamberLocation.city}
+                  value={formData.chamber_city}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      chamberLocation: {
-                        ...formData.chamberLocation,
-                        city: e.target.value,
-                      },
+                      chamber_city: e.target.value,
                     })
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
@@ -640,9 +805,9 @@ export default function DoctorProfile() {
               </label>
               <input
                 type="number"
-                value={formData.experience}
+                value={formData.years_of_experience}
                 onChange={(e) =>
-                  setFormData({ ...formData, experience: e.target.value })
+                  setFormData({ ...formData, years_of_experience: parseInt(e.target.value) || 0 })
                 }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                 min="0"
@@ -668,9 +833,9 @@ export default function DoctorProfile() {
               </label>
               <input
                 type="number"
-                value={formData.consultationFee}
+                value={formData.consultation_fee}
                 onChange={(e) =>
-                  setFormData({ ...formData, consultationFee: e.target.value })
+                  setFormData({ ...formData, consultation_fee: parseFloat(e.target.value) || 0 })
                 }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                 min="0"
@@ -726,14 +891,7 @@ export default function DoctorProfile() {
                 onChange={handleVideoChange}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
               />
-              <button
-                type="button"
-                onClick={handleVideoUpload}
-                disabled={!videoFile || uploadingVideo}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50"
-              >
-                {uploadingVideo ? "Uploading..." : "Upload"}
-              </button>
+       
             </div>
           </div>
         </div>
@@ -744,12 +902,12 @@ export default function DoctorProfile() {
             Availability Schedule 📅
           </h2>
           <div className="space-y-4">
-            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+            {/* <div className="p-4 bg-green-50 rounded-lg border border-green-200">
               <p className="text-sm text-green-800">
                 📅 Add specific dates when you're available. Admin will approve
                 your schedule.
               </p>
-            </div>
+            </div> */}
 
             {/* Add New Slot */}
             <div className="p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
@@ -904,11 +1062,11 @@ export default function DoctorProfile() {
                     onClick={() =>
                       setFormData({
                         ...formData,
-                        languages: toggleArrayItem(formData.languages, lang),
+                        languages_spoken: toggleArrayItem(formData.languages_spoken, lang),
                       })
                     }
                     className={`px-3 py-1 rounded-lg font-medium transition-all ${
-                      formData.languages.includes(lang)
+                      formData.languages_spoken.includes(lang)
                         ? "bg-green-600 text-white"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
@@ -930,11 +1088,11 @@ export default function DoctorProfile() {
                     onClick={() =>
                       setFormData({
                         ...formData,
-                        vibeTags: toggleArrayItem(formData.vibeTags, tag),
+                        vibe_tags: toggleArrayItem(formData.vibe_tags, tag),
                       })
                     }
                     className={`px-3 py-1 rounded-lg font-medium transition-all ${
-                      formData.vibeTags.includes(tag)
+                      formData.vibe_tags.includes(tag)
                         ? "bg-purple-600 text-white"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
@@ -951,19 +1109,19 @@ export default function DoctorProfile() {
               <div className="space-y-3">
                 <label
                   className={`flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                    formData.communicationStyle === "warm-empathetic"
+                    formData.communication_style === "warm_and_empathetic"
                       ? "border-green-500 bg-green-50"
                       : "border-gray-200 hover:border-green-300"
                   }`}
                 >
                   <input
                     type="radio"
-                    value="warm-empathetic"
-                    checked={formData.communicationStyle === "warm-empathetic"}
+                    value="warm_and_empathetic"
+                    checked={formData.communication_style === "warm_and_empathetic"}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        communicationStyle: e.target.value,
+                        communication_style: e.target.value,
                       })
                     }
                     className="mt-1 mr-3"
@@ -980,7 +1138,7 @@ export default function DoctorProfile() {
 
                 <label
                   className={`flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                    formData.communicationStyle === "direct-efficient"
+                    formData.communication_style === "direct-efficient"
                       ? "border-green-500 bg-green-50"
                       : "border-gray-200 hover:border-green-300"
                   }`}
@@ -988,11 +1146,11 @@ export default function DoctorProfile() {
                   <input
                     type="radio"
                     value="direct-efficient"
-                    checked={formData.communicationStyle === "direct-efficient"}
+                    checked={formData.communication_style === "direct-efficient"}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        communicationStyle: e.target.value,
+                        communication_style: e.target.value,
                       })
                     }
                     className="mt-1 mr-3"
@@ -1009,7 +1167,7 @@ export default function DoctorProfile() {
 
                 <label
                   className={`flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                    formData.communicationStyle === "collaborative"
+                    formData.communication_style === "collaborative"
                       ? "border-green-500 bg-green-50"
                       : "border-gray-200 hover:border-green-300"
                   }`}
@@ -1017,11 +1175,11 @@ export default function DoctorProfile() {
                   <input
                     type="radio"
                     value="collaborative"
-                    checked={formData.communicationStyle === "collaborative"}
+                    checked={formData.communication_style === "collaborative"}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        communicationStyle: e.target.value,
+                        communication_style: e.target.value,
                       })
                     }
                     className="mt-1 mr-3"
@@ -1045,9 +1203,9 @@ export default function DoctorProfile() {
                 <label className="flex items-center space-x-3 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={formData.telehealth}
+                    checked={formData.offer_telehealth}
                     onChange={(e) =>
-                      setFormData({ ...formData, telehealth: e.target.checked })
+                      setFormData({ ...formData, offer_telehealth: e.target.checked })
                     }
                     className="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
                   />
@@ -1058,9 +1216,9 @@ export default function DoctorProfile() {
                 <label className="flex items-center space-x-3 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={formData.inPerson}
+                    checked={formData.offer_in_person}
                     onChange={(e) =>
-                      setFormData({ ...formData, inPerson: e.target.checked })
+                      setFormData({ ...formData, offer_in_person: e.target.checked })
                     }
                     className="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
                   />
@@ -1071,11 +1229,11 @@ export default function DoctorProfile() {
                 <label className="flex items-center space-x-3 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={formData.acceptsNewPatients}
+                    checked={formData.accepting_new_patients}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        acceptsNewPatients: e.target.checked,
+                        accepting_new_patients: e.target.checked,
                       })
                     }
                     className="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"

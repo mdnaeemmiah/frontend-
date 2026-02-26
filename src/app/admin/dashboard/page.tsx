@@ -1,79 +1,80 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { FaCheck, FaArrowRight } from "react-icons/fa";
 import img1 from "@/assets/img (1).png";
-import img2 from "@/assets/img (2).png";
-import img3 from "@/assets/img (3).png";
-import img4 from "@/assets/img (4).png";
+import { getAdminDashboard, AdminAppointment } from "@/service/adminService";
 
-// Static data
-const STATIC_STATS = {
-  totalPatients: 156,
-  totalDoctors: 24,
-  totalAppointments: 342,
-  pendingAppointments: 12,
+// Default stats for loading state
+const DEFAULT_STATS = {
+  totalPatients: 0,
+  totalDoctors: 0,
+  totalAppointments: 0,
+  pendingAppointments: 0,
+  verifiedDoctors: 0,
+  pendingDoctors: 0,
 };
 
-const STATIC_RECENT_APPOINTMENTS = [
-  {
-    _id: "apt_001",
-    patientName: "John Smith",
-    doctorName: "Dr. Sarah Johnson",
-    appointmentDate: "1/22/2026",
-    appointmentTime: "10.00 AM",
-    status: "approved",
-    image: img1
-  },
-  {
-    _id: "apt_002",
-    patientName: "Emily Johnson",
-    doctorName: "Dr. Michael Chen",
-    appointmentDate: "1/22/2026",
-    appointmentTime: "11.30 AM",
-    status: "approved",
-    image: img2
-  },
-  {
-    _id: "apt_003",
-    patientName: "Michael Brown",
-    doctorName: "Dr. Emily Thompson",
-    appointmentDate: "1/23/2026",
-    appointmentTime: "11.30 AM",
-    status: "pending",
-    image: img3
-  },
-  {
-    _id: "apt_004",
-    patientName: "Sarah Davis",
-    doctorName: "Dr. David Kumar",
-    appointmentDate: "1/23/2026",
-    appointmentTime: "03.30 AM",
-    status: "approved",
-    image: img4
-  },
-  {
-    _id: "apt_005",
-    patientName: "David Wilson",
-    doctorName: "Dr. Sarah Johnson",
-    appointmentDate: "1/23/2026",
-    appointmentTime: "09.30 AM",
-    status: "approved",
-    image: img2
-  },
-];
-
 export default function AdminDashboard() {
-  const [stats] = useState(STATIC_STATS);
-  const [recentAppointments] = useState(STATIC_RECENT_APPOINTMENTS);
+  const [stats, setStats] = useState(DEFAULT_STATS);
+  const [recentAppointments, setRecentAppointments] = useState<AdminAppointment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await getAdminDashboard();
+      
+      // Update stats from the comprehensive API response
+      setStats({
+        totalPatients: response.users.total_patients,
+        totalDoctors: response.users.total_doctors,
+        totalAppointments: response.appointments.total,
+        pendingAppointments: response.appointments.pending,
+        verifiedDoctors: response.doctors.verified,
+        pendingDoctors: response.doctors.pending,
+      });
+      
+      // Update recent appointments (show most recent 5)
+      setRecentAppointments(response.appointments.all_appointments.slice(0, 5));
+    } catch (err) {
+      console.error("Error fetching admin dashboard data:", err);
+      setError("Failed to load dashboard data. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={fetchDashboardData}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-[#ebe2cd] rounded-lg flex items-center justify-center">
@@ -81,7 +82,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <h3 className="text-3xl font-bold text-gray-900 mb-1">
-            {stats.totalPatients}
+            {loading ? "..." : stats.totalPatients}
           </h3>
           <p className="text-gray-600">Total Patients</p>
         </div>
@@ -93,7 +94,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <h3 className="text-3xl font-bold text-gray-900 mb-1">
-            {stats.totalDoctors}
+            {loading ? "..." : stats.totalDoctors}
           </h3>
           <p className="text-gray-600">Total Doctors</p>
         </div>
@@ -101,11 +102,11 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">�</span>
+              <span className="text-2xl">📅</span>
             </div>
           </div>
           <h3 className="text-3xl font-bold text-gray-900 mb-1">
-            {stats.totalAppointments}
+            {loading ? "..." : stats.totalAppointments}
           </h3>
           <p className="text-gray-600">Total Appointments</p>
         </div>
@@ -117,59 +118,37 @@ export default function AdminDashboard() {
             </div>
           </div>
           <h3 className="text-3xl font-bold text-gray-900 mb-1">
-            {stats.pendingAppointments}
+            {loading ? "..." : stats.pendingAppointments}
           </h3>
-          <p className="text-gray-600">Pending Approvals</p>
+          <p className="text-gray-600">Pending Appointments</p>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <span className="text-2xl">✅</span>
+            </div>
+          </div>
+          <h3 className="text-3xl font-bold text-gray-900 mb-1">
+            {loading ? "..." : stats.verifiedDoctors}
+          </h3>
+          <p className="text-gray-600">Verified Doctors</p>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+              <span className="text-2xl">⏸️</span>
+            </div>
+          </div>
+          <h3 className="text-3xl font-bold text-gray-900 mb-1">
+            {loading ? "..." : stats.pendingDoctors}
+          </h3>
+          <p className="text-gray-600">Pending Doctors</p>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Link
-          href="/admin/appointments"
-          className="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow"
-        >
-          <div className="flex items-center space-x-4">
-            <div className="w-14 h-14 bg-[#ebe2cd] rounded-xl flex items-center justify-center">
-              <span className="text-3xl">📅</span>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">Appointments</h3>
-              <p className="text-sm text-gray-600">Manage all appointments</p>
-            </div>
-          </div>
-        </Link>
-
-        <Link
-          href="/admin/doctors"
-          className="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow"
-        >
-          <div className="flex items-center space-x-4">
-            <div className="w-14 h-14 bg-[#ebe2cd] rounded-xl flex items-center justify-center">
-              <span className="text-3xl">👨‍⚕️</span>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">Doctors</h3>
-              <p className="text-sm text-gray-600">Manage doctor profiles</p>
-            </div>
-          </div>
-        </Link>
-
-        <Link
-          href="/admin/patients"
-          className="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow"
-        >
-          <div className="flex items-center space-x-4">
-            <div className="w-14 h-14 bg-[#ebe2cd] rounded-xl flex items-center justify-center">
-              <span className="text-3xl">👥</span>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">Patients</h3>
-              <p className="text-sm text-gray-600">Manage patient accounts</p>
-            </div>
-          </div>
-        </Link>
-      </div>
+  
 
       {/* Recent Appointments */}
       <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100">
@@ -185,44 +164,61 @@ export default function AdminDashboard() {
           </Link>
         </div>
 
-        {recentAppointments.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-8 text-gray-500">Loading appointments...</div>
+        ) : recentAppointments.length === 0 ? (
           <div className="text-center py-12 bg-gray-50 rounded-2xl">
             <p className="text-gray-500 font-medium">No appointments yet</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {recentAppointments.map((appointment: any) => (
+            {recentAppointments.map((appointment) => (
               <div
-                key={appointment._id}
+                key={appointment.id}
                 className="flex items-center justify-between p-2 bg-[#F9FAFB] hover:bg-gray-100 transition-colors rounded-[16px]"
               >
                 <div className="flex items-center gap-4">
-                  <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-sm">
-                    <Image
-                      src={appointment.image || img1}
-                      alt={appointment.patientName}
-                      fill
-                      className="object-cover"
-                    />
+                  <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-sm bg-gray-100">
+                    {appointment.patient_info.profile_picture ? (
+                      <img
+                        src={appointment.patient_info.profile_picture}
+                        alt={appointment.patient_info.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          target.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <div className={`${appointment.patient_info.profile_picture ? 'hidden' : ''} w-full h-full flex items-center justify-center bg-gray-200 text-gray-500 text-xs font-bold`}>
+                      {appointment.patient_info.name.charAt(0).toUpperCase()}
+                    </div>
                   </div>
                   <div>
                     <h4 className="text-lg font-bold text-[#1F2937] leading-tight">
-                      {appointment.patientName}
+                      {appointment.patient_info.name}
                     </h4>
                     <p className="text-sm text-gray-500 font-medium mt-1">
-                      {appointment.appointmentDate} at {appointment.appointmentTime}
+                      {appointment.appointment_details.display}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {appointment.doctor_info.name} • {appointment.booking_id}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {appointment.reason}
                     </p>
                   </div>
                 </div>
 
                 <div>
-                  {appointment.status === "approved" ? (
+                  {appointment.status.toLowerCase() === "approved" || appointment.status.toLowerCase() === "confirmed" ? (
                     <button className="flex items-center gap-2 bg-[#0052CC] text-white px-8 py-2.5 rounded-[10px] font-bold text-sm shadow-sm hover:bg-[#0041a3] transition-all">
-                      <FaCheck className="text-xs" /> Approve
+                      <FaCheck className="text-xs" /> Approved
                     </button>
                   ) : (
                     <div className="bg-[#FEF3E2] text-[#B45309] px-8 py-2.5 rounded-[10px] font-bold text-sm flex items-center justify-center min-w-[124px]">
-                      Pending
+                      {appointment.status}
                     </div>
                   )}
                 </div>

@@ -17,5 +17,12 @@ export const ENDPOINTS = {
   forgetPassword: "/auth/forgot-password/",
   resetPassword: "/auth/reset-password/",
 
+  doctor_profile:"/doctors/profiles/",
+  get_doctor_profile:"/doctors/profiles/",
+  doctor_appoinments:"/doctors/appointments/",
+  doctor_dashboard:"/doctors/dashboard/stats/",
+
+  admin_dashboard:"/admin/dashboard/overview/",
+  admin_appointments:"/admin/dashboard/all_doctors/",
 
 };

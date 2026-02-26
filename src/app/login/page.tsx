@@ -124,6 +124,7 @@ export default function LoginPage() {
         // Store user role and basic info
         localStorage.setItem("userRole", finalRole);
         localStorage.setItem("userEmail", data.email);
+        localStorage.setItem("user_id", profile?.id || "");
         
         // Store user, profile, and permissions data
         if (user) {
